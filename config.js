@@ -8,7 +8,7 @@ const APP_CONFIG = {
   SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzmJL45IC1FBVJagIHY05SCwfHRAxNCjleVrsPYYMh76wtWjFEWNrRz2GeGmMF2gz5gog/exec",
 
   // STEP 2: Your UPI ID (e.g. "yourname@paytm" or "9876543210@upi")
-  UPI_ID: "yourname@upi",
+  UPI_ID: "9014844036@superyes",
 
   // STEP 3: Event title shown on all pages (also editable in Google Sheets Settings)
   EVENT_NAME: "Event Contribution",
