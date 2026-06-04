@@ -5,7 +5,7 @@
 const APP_CONFIG = {
 
   // STEP 1: Paste your Google Apps Script URL here after deploying
-  SCRIPT_URL: "https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzmJL45IC1FBVJagIHY05SCwfHRAxNCjleVrsPYYMh76wtWjFEWNrRz2GeGmMF2gz5gog/exec",
 
   // STEP 2: Your UPI ID (e.g. "yourname@paytm" or "9876543210@upi")
   UPI_ID: "yourname@upi",
