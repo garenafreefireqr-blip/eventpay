@@ -11,7 +11,7 @@ const APP_CONFIG = {
   UPI_ID: "9014844036@superyes",
 
   // STEP 3: Event title shown on all pages (also editable in Google Sheets Settings)
-  EVENT_NAME: "Event Contribution",
+  EVENT_NAME: "Wedding of ram & Sita",
 
   // STEP 4: Your organization/event name for receipts
   ORG_NAME: "Event Organisation",
