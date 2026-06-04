@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EventPay">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Complaint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero {
+  background: linear-gradient(135deg, #1a0f2e 0%, #0f1a20 100%);
+  padding: 40px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.page-hero h1 { font-size: clamp(22px,4vw,30px); font-weight: 800; margin-bottom: 8px; }
+.page-hero p  { color: var(--text-muted); font-size: 14px; }
+
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 520px;
+  margin: 28px auto 0;
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.5s ease both;
+}
+.form-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-card-title .icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  display: flex; align-items: center; justify-content: center;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 7px;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  resize: none;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--warning);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+.form-group input.invalid { border-color: var(--danger); }
+.form-group input.valid   { border-color: var(--success); }
+.field-error {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 5px;
+  display: none;
+}
+.field-error.show { display: block; }
+
+.char-counter {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: right;
+  margin-top: 5px;
+}
+.char-counter.warn { color: var(--warning); }
+.char-counter.over { color: var(--danger); }
+
+/* FILE UPLOAD */
+.file-upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.file-upload-area:hover,
+.file-upload-area.dragover {
+  border-color: var(--warning);
+  background: rgba(245,158,11,0.05);
+}
+.file-upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.upload-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.upload-hint  { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 10px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+.file-preview .file-icon { font-size: 24px; }
+.file-preview .file-info { flex: 1; }
+.file-preview .file-name { font-weight: 600; word-break: break-all; }
+.file-preview .file-size { color: var(--text-dim); font-size: 11px; }
+.file-preview .remove-file {
+  cursor: pointer;
+  color: var(--danger);
+  font-size: 18px;
+  padding: 4px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.4); }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* SUCCESS STATE */
+.success-card {
+  max-width: 520px;
+  margin: 28px auto 0;
+  background: var(--surface);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 20px;
+  padding: 40px 28px;
+  text-align: center;
+  animation: fadeInUp 0.5s ease both;
+}
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounceIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes bounceIn {
+  from { opacity: 0; transform: scale(0.3); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.success-card h2 { font-size: 22px; font-weight: 800; color: var(--success); margin-bottom: 12px; }
+.success-card p  { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.another-btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 11px 24px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  transition: all 0.2s;
+}
+.another-btn:hover { background: rgba(255,255,255,0.05); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-logo" id="navEventName">EventPay</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="status.html" class="nav-link">Status</a>
+    <a href="complaint.html" class="nav-link active">Complaint</a>
+    <a href="admin-login.html" class="nav-link admin-link">Admin</a>
+  </div>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+</nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="index.html">🏠 Home</a>
+  <a href="status.html">🔍 Check Status</a>
+  <a href="complaint.html">📋 Complaint</a>
+  <a href="admin-login.html">🔐 Admin</a>
+</div>
+
+<div class="page-hero">
+  <h1>📋 Submit a Complaint</h1>
+  <p>We take every complaint seriously. Our team will respond within 24 hours.</p>
+</div>
+
+<div class="page-content">
+
+  <div id="formSection">
+    <div class="form-card">
+      <div class="form-card-title">
+        <div class="icon">📝</div>
+        Complaint Details
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="cName" placeholder="Your name">
+          <div class="field-error" id="cNameErr">Letters only, min 2 chars</div>
+        </div>
+        <div class="form-group">
+          <label>Village / Area *</label>
+          <input type="text" id="cVillage" placeholder="Your village">
+          <div class="field-error" id="cVillageErr">Village is required</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="cPhone" placeholder="10-digit mobile" maxlength="10">
+          <div class="field-error" id="cPhoneErr">Valid Indian mobile required</div>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="cEmail" placeholder="your@email.com">
+          <div class="field-error" id="cEmailErr">Valid email required</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Complaint Details * <span style="color:var(--text-dim)">(min 10 characters)</span></label>
+        <textarea id="cComplaint" rows="4" placeholder="Describe your issue in detail..." maxlength="1000"></textarea>
+        <div class="char-counter" id="charCounter">0 / 1000</div>
+        <div class="field-error" id="cComplaintErr">Minimum 10 characters required</div>
+      </div>
+
+      <div class="form-group">
+        <label>Attachment <span style="color:var(--text-dim)">(screenshot, PDF — max 5MB)</span></label>
+        <div class="file-upload-area" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFile(this)">
+          <div id="uploadPrompt">
+            <div class="upload-icon">📎</div>
+            <div class="upload-label">Tap to choose or drag & drop</div>
+            <div class="upload-hint">Images (JPG, PNG) or PDF • Max 5 MB</div>
+          </div>
+          <div id="filePreview" style="display:none"></div>
+        </div>
+      </div>
+
+      <div id="submitMsg" class="msg-box"></div>
+      <div class="progress-bar" id="progressBar" style="display:none">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitComplaint()">
+        📤 Submit Complaint
+      </button>
+    </div>
+  </div>
+
+  <div id="successSection" style="display:none">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <h2>Complaint Submitted!</h2>
+      <p>Your complaint has been received and stored securely.<br>
+         The admin will review it and reply to your email within 24 hours.<br><br>
+         <strong>Check your email for a confirmation.</strong>
+      </p>
+      <button class="another-btn" onclick="resetForm()">Submit Another Complaint</button>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <p>All complaints are reviewed by admin • Replies sent via Email</p>
+</footer>
+
+<style>
+.msg-box { padding:14px 16px; border-radius:12px; font-size:14px; font-weight:500; margin-bottom:16px; display:none; }
+.msg-box.show { display:flex; align-items:center; gap:10px; }
+.msg-box.success { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981; }
+.msg-box.error   { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; }
+</style>
+
+<script src="config.js"></script>
+<script>
+let fileData = null;
+let fileName = null;
+let fileType = null;
+
+fetch(APP_CONFIG.SCRIPT_URL + "?action=getSettings")
+  .then(r => r.json())
+  .then(d => {
+    const name = d.EventName || APP_CONFIG.EVENT_NAME;
+    document.getElementById("navEventName").textContent = name;
+    document.title = "Complaint — " + name;
+  }).catch(() => {});
+
+// Char counter
+document.getElementById("cComplaint").addEventListener("input", function() {
+  const len = this.value.length;
+  const counter = document.getElementById("charCounter");
+  counter.textContent = len + " / 1000";
+  counter.className = "char-counter" + (len > 900 ? " over" : len > 700 ? " warn" : "");
+});
+
+// Drag and drop
+const dropZone = document.getElementById("dropZone");
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("dragover");
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(input) {
+  if (input.files[0]) processFile(input.files[0]);
+}
+
+function processFile(file) {
+  if (file.size > 5 * 1024 * 1024) {
+    showMsg("submitMsg", "error", "File too large. Maximum size is 5 MB.");
+    return;
+  }
+  const allowed = ["image/jpeg","image/png","image/gif","image/webp","application/pdf"];
+  if (!allowed.includes(file.type)) {
+    showMsg("submitMsg", "error", "Only JPG, PNG, GIF, WebP, or PDF files allowed.");
+    return;
+  }
+  fileName = file.name;
+  fileType = file.type;
+  const icon = file.type === "application/pdf" ? "📄" : "🖼️";
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+  document.getElementById("uploadPrompt").style.display = "none";
+  document.getElementById("filePreview").style.display = "flex";
+  document.getElementById("filePreview").innerHTML = `
+    <div class="file-preview">
+      <span class="file-icon">${icon}</span>
+      <div class="file-info">
+        <div class="file-name">${file.name}</div>
+        <div class="file-size">${sizeMB} MB</div>
+      </div>
+      <span class="remove-file" onclick="removeFile()">✕</span>
+    </div>`;
+  const reader = new FileReader();
+  reader.onload = e => { fileData = e.target.result.split(",")[1]; };
+  reader.readAsDataURL(file);
+}
+
+function removeFile() {
+  fileData = null; fileName = null; fileType = null;
+  document.getElementById("fileInput").value = "";
+  document.getElementById("uploadPrompt").style.display = "block";
+  document.getElementById("filePreview").style.display = "none";
+  document.getElementById("filePreview").innerHTML = "";
+}
+
+function showMsg(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = "msg-box show " + type;
+  el.innerHTML = (type === "success" ? "✅" : "❌") + " " + text;
+}
+
+function validateAll() {
+  let ok = true;
+  const n = document.getElementById("cName").value.trim();
+  const nameOk = /^[A-Za-z ]{2,}$/.test(n);
+  document.getElementById("cName").classList.toggle("invalid", !nameOk);
+  document.getElementById("cNameErr").classList.toggle("show", !nameOk && n);
+  if (!nameOk) ok = false;
+
+  const v = document.getElementById("cVillage").value.trim();
+  const villOk = v.length >= 2;
+  document.getElementById("cVillage").classList.toggle("invalid", !villOk);
+  document.getElementById("cVillageErr").classList.toggle("show", !villOk && v);
+  if (!villOk) ok = false;
+
+  const p = document.getElementById("cPhone").value.trim();
+  const phoneOk = /^[6-9]\d{9}$/.test(p);
+  document.getElementById("cPhone").classList.toggle("invalid", !phoneOk);
+  document.getElementById("cPhoneErr").classList.toggle("show", !phoneOk && p);
+  if (!phoneOk) ok = false;
+
+  const e = document.getElementById("cEmail").value.trim();
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  document.getElementById("cEmail").classList.toggle("invalid", !emailOk);
+  document.getElementById("cEmailErr").classList.toggle("show", !emailOk && e);
+  if (!emailOk) ok = false;
+
+  const c = document.getElementById("cComplaint").value.trim();
+  const compOk = c.length >= 10;
+  document.getElementById("cComplaintErr").classList.toggle("show", !compOk && c);
+  if (!compOk) ok = false;
+
+  return ok;
+}
+
+["cName","cVillage","cPhone","cEmail","cComplaint"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    if (id === "cPhone") {
+      document.getElementById("cPhone").value = document.getElementById("cPhone").value.replace(/\D/g,"").slice(0,10);
+    }
+  });
+});
+
+function submitComplaint() {
+  if (!validateAll()) {
+    showMsg("submitMsg", "error", "Please fill all required fields correctly.");
+    return;
+  }
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  const pb = document.getElementById("progressBar");
+  const pf = document.getElementById("progressFill");
+  pb.style.display = "block";
+  pf.style.width = "0%";
+  setTimeout(() => pf.style.width = "60%", 100);
+  setTimeout(() => pf.style.width = "90%", 2000);
+
+  const params = new URLSearchParams({
+    action:    "insertComplaint",
+    name:      document.getElementById("cName").value.trim(),
+    village:   document.getElementById("cVillage").value.trim(),
+    phone:     document.getElementById("cPhone").value.trim(),
+    email:     document.getElementById("cEmail").value.trim(),
+    complaint: document.getElementById("cComplaint").value.trim(),
+    filedata:  fileData || "",
+    filename:  fileName || "",
+    filetype:  fileType || ""
+  });
+
+  fetch(APP_CONFIG.SCRIPT_URL, { method: "POST", body: params })
+    .then(r => r.json())
+    .then(res => {
+      pf.style.width = "100%";
+      setTimeout(() => pb.style.display = "none", 500);
+      btn.disabled = false;
+      if (res.result === "Inserted") {
+        document.getElementById("formSection").style.display = "none";
+        document.getElementById("successSection").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        showMsg("submitMsg", "error", "Server error. Please try again.");
+      }
+    })
+    .catch(() => {
+      pf.style.width = "100%";
+      setTimeout(() => pb.style.display = "none", 500);
+      btn.disabled = false;
+      showMsg("submitMsg", "error", "Connection error. Please try again.");
+    });
+}
+
+function resetForm() {
+  document.getElementById("formSection").style.display = "block";
+  document.getElementById("successSection").style.display = "none";
+  ["cName","cVillage","cPhone","cEmail","cComplaint"].forEach(id => {
+    document.getElementById(id).value = "";
+    document.getElementById(id).classList.remove("invalid","valid");
+  });
+  removeFile();
+  document.getElementById("charCounter").textContent = "0 / 1000";
+}
+
+function toggleNav() {
+  document.getElementById("navMobile").classList.toggle("open");
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(r => console.log("[SW] Registered:", r.scope))
+      .catch(e => console.log("[SW] Error:", e));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EventPay">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Event Contribution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ---- PAGE SPECIFIC ---- */
+.hero-banner {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  padding: 48px 20px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-event-name {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(22px, 5vw, 38px);
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+  position: relative;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  letter-spacing: -0.5px;
+}
+.hero-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  font-weight: 400;
+  position: relative;
+}
+.hero-wave {
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+}
+
+/* STEP INDICATOR */
+.steps-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 24px 20px 8px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  position: relative;
+}
+.step-item::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+  transition: background 0.4s;
+}
+.step-item:last-child::after { display: none; }
+.step-item.done::after { background: var(--accent); }
+
+.step-circle {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.step-item.active .step-circle {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.2);
+  transform: scale(1.15);
+}
+.step-item.done .step-circle {
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
+}
+.step-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.step-item.active .step-label { color: var(--accent); }
+.step-item.done .step-label { color: var(--success); }
+
+/* FORM CARD */
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  max-width: 420px;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  animation: slideUp 0.5s ease both;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title .icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 7px;
+}
+.form-group input {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  background: var(--surface);
+}
+.form-group input.invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+}
+.form-group input.valid {
+  border-color: var(--success);
+}
+.field-error {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 5px;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+.field-error.show { display: block; }
+
+.proceed-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.proceed-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.proceed-btn:hover:not(:disabled)::before { opacity: 1; }
+.proceed-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+.proceed-btn:active:not(:disabled) { transform: translateY(0); }
+.proceed-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* PAYMENT SECTION */
+#paymentSection { display: none; }
+.qr-wrapper {
+  text-align: center;
+  padding: 20px;
+}
+.qr-container {
+  display: inline-block;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  margin-bottom: 16px;
+  position: relative;
+}
+.qr-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 20px;
+  border: 2px solid var(--accent);
+  animation: pulse-ring 2s infinite;
+  pointer-events: none;
+}
+@keyframes pulse-ring {
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(1.03); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+.amount-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.upi-apps {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.upi-app-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Sora', sans-serif;
+  text-decoration: none;
+}
+.upi-app-btn:hover {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+  transform: translateY(-1px);
+}
+.divider-text {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 16px 0;
+  position: relative;
+}
+.divider-text::before, .divider-text::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--border);
+}
+.divider-text::before { left: 0; }
+.divider-text::after { right: 0; }
+
+.utr-note {
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  color: #fbbf24;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.finish-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+}
+.finish-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  width: fit-content;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--accent); }
+
+/* RECEIPT */
+#receiptSection { display: none; }
+.receipt-card {
+  background: white;
+  color: #1a1a2e;
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 380px;
+  margin: 0 auto;
+  font-family: 'Sora', sans-serif;
+}
+.receipt-header {
+  text-align: center;
+  border-bottom: 2px dashed #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+.receipt-org {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.receipt-event {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 4px 0;
+}
+.receipt-title {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.receipt-amount-big {
+  text-align: center;
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 14px;
+  color: white;
+}
+.receipt-amount-big .label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+.receipt-amount-big .value { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+.receipt-row:last-child { border-bottom: none; }
+.receipt-row .key { color: #64748b; font-weight: 500; }
+.receipt-row .val { color: #1e293b; font-weight: 600; text-align: right; max-width: 180px; word-break: break-all; }
+.receipt-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.status-pending { background: #dbeafe; color: #1d4ed8; }
+.status-verified { background: #dcfce7; color: #15803d; }
+.status-notverified { background: #fee2e2; color: #b91c1c; }
+.receipt-footer {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px dashed #e2e8f0;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+.download-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+.download-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+
+/* REF ID badge */
+.ref-badge {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  margin: 16px 0;
+}
+.ref-badge .ref-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+.ref-badge .ref-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #6366f1; margin-top: 4px; word-break: break-all; }
+
+/* MSG BOX */
+.msg-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+.msg-box.show { display: flex; align-items: center; gap: 10px; }
+.msg-box.success { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+.msg-box.error   { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+.msg-box.info    { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-logo" id="navEventName">EventPay</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Home</a>
+    <a href="status.html" class="nav-link">Status</a>
+    <a href="complaint.html" class="nav-link">Complaint</a>
+    <a href="admin-login.html" class="nav-link admin-link">Admin</a>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleNav()">☰</button>
+</nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="index.html">🏠 Home</a>
+  <a href="status.html">🔍 Check Status</a>
+  <a href="complaint.html">📋 Complaint</a>
+  <a href="admin-login.html">🔐 Admin</a>
+</div>
+
+<div class="hero-banner">
+  <div class="hero-event-name" id="eventTitle">Loading event...</div>
+  <div class="hero-subtitle">Secure • Fast • Transparent</div>
+  <svg class="hero-wave" viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 48h1440V24C1200 48 960 0 720 0S240 48 0 24V48z" fill="var(--bg)"/>
+  </svg>
+</div>
+
+<div class="page-content">
+
+  <!-- STEPS -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item active" id="step1">
+      <div class="step-circle">1</div>
+      <span class="step-label">Details</span>
+    </div>
+    <div class="step-item" id="step2">
+      <div class="step-circle">2</div>
+      <span class="step-label">Payment</span>
+    </div>
+    <div class="step-item" id="step3">
+      <div class="step-circle">✓</div>
+      <span class="step-label">Receipt</span>
+    </div>
+  </div>
+
+  <!-- FORM SECTION -->
+  <div id="formSection">
+    <div class="card">
+      <div class="card-title">
+        <div class="icon">👤</div>
+        Your Details
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="Enter your full name" autocomplete="name">
+        <div class="field-error" id="nameErr">Please enter a valid name (letters only)</div>
+      </div>
+      <div class="form-group">
+        <label>Village / Area</label>
+        <input type="text" id="village" placeholder="Your village or locality">
+        <div class="field-error" id="villageErr">Village name is required</div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="phone" placeholder="10-digit mobile number" maxlength="10" autocomplete="tel">
+        <div class="field-error" id="phoneErr">Enter a valid 10-digit Indian mobile number</div>
+      </div>
+      <div class="form-group">
+        <label>Contribution Amount (₹)</label>
+        <input type="number" id="amount" placeholder="Minimum ₹50" min="50">
+        <div class="field-error" id="amountErr">Minimum amount is ₹50</div>
+      </div>
+      <button class="proceed-btn" id="proceedBtn" onclick="goToPayment()" disabled>
+        Proceed to Payment →
+      </button>
+    </div>
+  </div>
+
+  <!-- PAYMENT SECTION -->
+  <div id="paymentSection">
+    <div class="card">
+      <div class="back-link" onclick="backToForm()">← Back to Details</div>
+      <div class="card-title">
+        <div class="icon">📲</div>
+        Scan & Pay
+      </div>
+      <div class="qr-wrapper">
+        <div class="qr-container">
+          <div id="qrcode"></div>
+          <div class="qr-pulse"></div>
+        </div>
+        <div class="amount-badge" id="amountBadge">₹0</div>
+      </div>
+      <div class="upi-apps">
+        <button class="upi-app-btn" onclick="openUPIApp('phonepe')">📱 PhonePe</button>
+        <button class="upi-app-btn" onclick="openUPIApp('gpay')">💚 GPay</button>
+        <button class="upi-app-btn" onclick="openUPIApp('paytm')">💙 Paytm</button>
+        <button class="upi-app-btn" onclick="openUPIApp('bhim')">🇮🇳 BHIM</button>
+      </div>
+      <div class="divider-text">After payment, enter UTR below</div>
+      <div class="utr-note">⚠️ <span>Enter the 12-digit UTR / Transaction ID shown in your payment app after successful payment.</span></div>
+      <div class="form-group">
+        <label>UTR / Transaction Reference Number</label>
+        <input type="text" id="utr" placeholder="e.g. 423819874512" maxlength="30">
+      </div>
+      <div id="payMsg" class="msg-box"></div>
+      <div class="progress-bar" id="progressBar" style="display:none">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <button class="finish-btn" id="finishBtn" onclick="finishPayment()">
+        ✓ Confirm Payment
+      </button>
+    </div>
+  </div>
+
+  <!-- RECEIPT SECTION -->
+  <div id="receiptSection">
+    <div id="receipt" class="receipt-card">
+      <div class="receipt-header">
+        <div class="receipt-org" id="r_org">Organisation</div>
+        <div class="receipt-event" id="r_event">Event Name</div>
+        <div class="receipt-title">Payment Receipt</div>
+      </div>
+      <div class="receipt-amount-big">
+        <div class="label">Amount Paid</div>
+        <div class="value" id="r_amount">₹0</div>
+      </div>
+      <div class="receipt-row"><span class="key">Name</span><span class="val" id="r_name">—</span></div>
+      <div class="receipt-row"><span class="key">Village</span><span class="val" id="r_village">—</span></div>
+      <div class="receipt-row"><span class="key">Phone</span><span class="val" id="r_phone">—</span></div>
+      <div class="receipt-row"><span class="key">UTR No.</span><span class="val" id="r_utr">—</span></div>
+      <div class="receipt-row"><span class="key">Date & Time</span><span class="val" id="r_datetime">—</span></div>
+      <div class="receipt-row">
+        <span class="key">Status</span>
+        <span class="val">
+          <span class="receipt-status-badge status-pending" id="r_status">⏳ Pending Verification</span>
+        </span>
+      </div>
+      <div class="ref-badge">
+        <div class="ref-label">Reference ID (save this!)</div>
+        <div class="ref-id" id="r_refid">—</div>
+      </div>
+      <div class="receipt-footer">
+        ⚠️ This receipt is subject to manual verification by admin.<br>
+        Check status at: <strong>Status Page</strong> using your Reference ID.<br>
+        <small>Generated: <span id="r_gentime"></span></small>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadReceipt()">
+      ⬇️ Download Receipt as Image
+    </button>
+    <div style="text-align:center; margin-top: 12px;">
+      <a href="status.html" class="text-link">Check Payment Status →</a>
+    </div>
+  </div>
+
+</div><!-- /page-content -->
+
+<footer class="footer">
+  <p>🔒 Secure Payment System &nbsp;|&nbsp; Powered by Google Sheets</p>
+</footer>
+
+<script src="config.js"></script>
+<script>
+let userData = {};
+let upiLink = "";
+let upiID = "";
+let eventName = "Event";
+
+// Load settings
+fetch(APP_CONFIG.SCRIPT_URL + "?action=getSettings")
+  .then(r => r.json())
+  .then(data => {
+    upiID = data.UPI_ID || APP_CONFIG.UPI_ID;
+    eventName = data.EventName || APP_CONFIG.EVENT_NAME;
+    document.getElementById("eventTitle").textContent = eventName;
+    document.getElementById("navEventName").textContent = eventName;
+    document.title = eventName + " — Contribution";
+  })
+  .catch(() => {
+    upiID = APP_CONFIG.UPI_ID;
+    eventName = APP_CONFIG.EVENT_NAME;
+    document.getElementById("eventTitle").textContent = eventName;
+  });
+
+// Validation
+const nameIn   = document.getElementById("name");
+const villageIn = document.getElementById("village");
+const phoneIn  = document.getElementById("phone");
+const amountIn = document.getElementById("amount");
+const proceedBtn = document.getElementById("proceedBtn");
+
+function validate() {
+  let ok = true;
+
+  const nameOk = /^[A-Za-z ]{2,}$/.test(nameIn.value.trim());
+  nameIn.classList.toggle("invalid", !nameOk);
+  nameIn.classList.toggle("valid", nameOk && nameIn.value.trim());
+  document.getElementById("nameErr").classList.toggle("show", !nameOk && nameIn.value.trim());
+  if (!nameOk) ok = false;
+
+  const villageOk = villageIn.value.trim().length >= 2;
+  villageIn.classList.toggle("invalid", !villageOk);
+  villageIn.classList.toggle("valid", villageOk);
+  document.getElementById("villageErr").classList.toggle("show", !villageOk && villageIn.value.trim());
+  if (!villageOk) ok = false;
+
+  const phoneOk = /^[6-9]\d{9}$/.test(phoneIn.value.trim());
+  phoneIn.classList.toggle("invalid", !phoneOk);
+  phoneIn.classList.toggle("valid", phoneOk);
+  document.getElementById("phoneErr").classList.toggle("show", !phoneOk && phoneIn.value.trim());
+  if (!phoneOk) ok = false;
+
+  const amt = Number(amountIn.value);
+  const maxAmt = APP_CONFIG.MAX_AMOUNT || 999999;
+  const amtOk = amt >= APP_CONFIG.MIN_AMOUNT && amt <= maxAmt;
+  amountIn.classList.toggle("invalid", !amtOk);
+  amountIn.classList.toggle("valid", amtOk);
+  document.getElementById("amountErr").classList.toggle("show", !amtOk && amountIn.value);
+  if (!amtOk) ok = false;
+
+  proceedBtn.disabled = !ok;
+}
+
+nameIn.addEventListener("input", validate);
+villageIn.addEventListener("input", validate);
+phoneIn.addEventListener("input", () => {
+  phoneIn.value = phoneIn.value.replace(/\D/g, "").slice(0, 10);
+  validate();
+});
+amountIn.addEventListener("input", validate);
+
+function generateRefID() {
+  const ts = Date.now().toString();
+  return "EP" + ts.slice(-10);
+}
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById("step" + i);
+    el.classList.remove("active","done");
+    if (i < n) el.classList.add("done");
+    if (i === n) el.classList.add("active");
+  });
+}
+
+function goToPayment() {
+  userData = {
+    refid:   generateRefID(),
+    name:    nameIn.value.trim(),
+    village: villageIn.value.trim(),
+    phone:   phoneIn.value.trim(),
+    amount:  amountIn.value.trim()
+  };
+  upiLink = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(userData.name)}&am=${userData.amount}&cu=INR&tn=${userData.refid}`;
+  document.getElementById("formSection").style.display = "none";
+  document.getElementById("paymentSection").style.display = "block";
+  document.getElementById("amountBadge").textContent = "₹" + userData.amount;
+  document.getElementById("qrcode").innerHTML = "";
+  new QRCode(document.getElementById("qrcode"), { text: upiLink, width: 200, height: 200 });
+  setStep(2);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function backToForm() {
+  document.getElementById("paymentSection").style.display = "none";
+  document.getElementById("formSection").style.display = "block";
+  setStep(1);
+}
+
+function openUPIApp(app) {
+  const links = {
+    phonepe: `phonepe://pay?pa=${upiID}&pn=${encodeURIComponent(userData.name)}&am=${userData.amount}&cu=INR&tn=${userData.refid}`,
+    gpay:    `tez://upi/pay?pa=${upiID}&pn=${encodeURIComponent(userData.name)}&am=${userData.amount}&cu=INR&tn=${userData.refid}`,
+    paytm:   `paytmmp://pay?pa=${upiID}&pn=${encodeURIComponent(userData.name)}&am=${userData.amount}&cu=INR&tn=${userData.refid}`,
+    bhim:    `upi://pay?pa=${upiID}&pn=${encodeURIComponent(userData.name)}&am=${userData.amount}&cu=INR&tn=${userData.refid}`
+  };
+  window.location.href = links[app] || upiLink;
+  setTimeout(() => { window.location.href = upiLink; }, 2000);
+}
+
+function showMsg(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = "msg-box show " + type;
+  el.innerHTML = (type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️") + " " + text;
+}
+
+function showProgress() {
+  const pb = document.getElementById("progressBar");
+  const pf = document.getElementById("progressFill");
+  pb.style.display = "block";
+  pf.style.width = "0%";
+  setTimeout(() => pf.style.width = "40%", 100);
+  setTimeout(() => pf.style.width = "75%", 2000);
+  setTimeout(() => pf.style.width = "90%", 4000);
+}
+function completeProgress() {
+  document.getElementById("progressFill").style.width = "100%";
+  setTimeout(() => document.getElementById("progressBar").style.display = "none", 600);
+}
+
+function finishPayment() {
+  const utr = document.getElementById("utr").value.trim();
+  if (!utr || utr.length < 5) {
+    showMsg("payMsg", "error", "Please enter a valid UTR / Transaction ID");
+    return;
+  }
+  document.getElementById("finishBtn").disabled = true;
+  showProgress();
+  const data = new URLSearchParams({
+    action: "insertPayment",
+    refid:   userData.refid,
+    name:    userData.name,
+    village: userData.village,
+    phone:   userData.phone,
+    amount:  userData.amount,
+    utr:     utr
+  });
+  fetch(APP_CONFIG.SCRIPT_URL, { method: "POST", body: data })
+    .then(r => r.json())
+    .then(res => {
+      completeProgress();
+      document.getElementById("finishBtn").disabled = false;
+      if (res.result === "Inserted") {
+        showMsg("payMsg", "success", "Payment submitted successfully!");
+        setTimeout(() => showReceipt(utr), 600);
+      } else if (res.result === "DuplicatePhone") {
+        showMsg("payMsg", "error", "This phone number has already been used for payment.");
+      } else {
+        showMsg("payMsg", "error", "Server error. Please try again.");
+      }
+    })
+    .catch(() => {
+      completeProgress();
+      document.getElementById("finishBtn").disabled = false;
+      showMsg("payMsg", "error", "Connection error. Please check internet and try again.");
+    });
+}
+
+function showReceipt(utr) {
+  document.getElementById("paymentSection").style.display = "none";
+  document.getElementById("receiptSection").style.display = "block";
+  setStep(3);
+  const now = new Date();
+  document.getElementById("r_org").textContent   = APP_CONFIG.ORG_NAME || "Organisation";
+  document.getElementById("r_event").textContent = eventName;
+  document.getElementById("r_name").textContent  = userData.name;
+  document.getElementById("r_village").textContent = userData.village;
+  document.getElementById("r_phone").textContent = userData.phone;
+  document.getElementById("r_amount").textContent = "₹" + Number(userData.amount).toLocaleString("en-IN");
+  document.getElementById("r_utr").textContent   = utr;
+  document.getElementById("r_refid").textContent = userData.refid;
+  document.getElementById("r_datetime").textContent = now.toLocaleDateString("en-IN", {day:"2-digit",month:"short",year:"numeric"}) + " " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("r_gentime").textContent = now.toLocaleString("en-IN");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function downloadReceipt() {
+  const receipt = document.getElementById("receipt");
+  html2canvas(receipt, { scale: 2, backgroundColor: "#fff", useCORS: true }).then(canvas => {
+    const a = document.createElement("a");
+    a.download = "receipt_" + userData.refid + ".png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  });
+}
+
+function toggleNav() {
+  document.getElementById("navMobile").classList.toggle("open");
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(r => console.log("[SW] Registered:", r.scope))
+      .catch(e => console.log("[SW] Error:", e));
+  });
+}
+</script>
+</body>
+</html>
