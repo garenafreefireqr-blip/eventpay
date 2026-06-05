@@ -59,6 +59,35 @@
 .tab-panel { display:none; }
 .tab-panel.active { display:block; animation:fadeIn 0.3s ease; }
 
+
+  // After successful login, store role
+localStorage.setItem('adminRole', data.role);
+localStorage.setItem('adminAccess', data.accessLevel);
+
+// Then use this to control what's visible:
+function applyRoleRestrictions() {
+  const role   = localStorage.getItem('adminRole');
+  const access = localStorage.getItem('adminAccess');
+
+  // Only superadmin sees Settings, Activity Log, and Delete buttons
+  if (role !== 'superadmin') {
+    document.querySelectorAll('.superadmin-only').forEach(el => el.style.display = 'none');
+  }
+  // Verifier can approve payments but not manage complaints
+  if (access === 'verify_only') {
+    document.querySelectorAll('.complaints-section').forEach(el => el.style.display = 'none');
+  }
+  // Viewer can only see, not edit anything
+  if (access === 'view_only') {
+    document.querySelectorAll('button.action-btn').forEach(el => el.disabled = true);
+  }
+}
+// Call this after page load
+applyRoleRestrictions();
+
+
+  
+
 /* ---- ANALYTICS ---- */
 .analytics-grid {
   display:grid;
