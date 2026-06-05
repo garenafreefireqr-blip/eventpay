@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.garenafreefireqr_blip.twa",
+        "sha256_cert_fingerprints": ["56:B8:B3:97:5C:56:24:1E:CC:FB:15:01:F1:28:CD:7C:E5:BF:C4:56:58:41:62:8A:11:A5:DC:9F:94:17:A4:A7"]
+      }
+    }]
