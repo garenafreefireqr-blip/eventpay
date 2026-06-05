@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.garenafreefireqr_blip.twa",
-        "sha256_cert_fingerprints": ["56:B8:B3:97:5C:56:24:1E:CC:FB:15:01:F1:28:CD:7C:E5:BF:C4:56:58:41:62:8A:11:A5:DC:9F:94:17:A4:A7"]
+        "sha256_cert_fingerprints": ["58:FE:C7:B5:3F:DF:8F:9B:29:46:CD:AD:60:AA:29:1C:A9:EA:7A:C4:BC:6C:0E:8E:1E:6D:15:3D:28:D3:58:32"]
       }
     }]
