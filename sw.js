@@ -5,6 +5,19 @@
 const CACHE_NAME = "eventpay-v3";
 const NEVER_CACHE = ["config.js", "script.google.com"];
 
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeToggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+})();
 const CACHE_FILES = [
   "./index.html",
   "./status.html",
