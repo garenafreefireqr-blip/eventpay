@@ -146,6 +146,24 @@ body {
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
+
+
+/* Fix status badge overflow */
+.status-badge, [class*="status"] {
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 4px 12px;
+}
+
+
+
+
+
 /* ---- LOADING SPINNER ---- */
 .spinner {
   width: 40px; height: 40px;
