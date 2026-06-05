@@ -1,4 +1,4 @@
-cat > /home/claude/EventPay/sw.js << 'ENDOFFILE'
+
 // SERVICE WORKER v3 — EventPay
 // v3: Never caches config.js, forces old cache clear
 
@@ -77,5 +77,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
-ENDOFFILE
-echo "sw.js written"
+
