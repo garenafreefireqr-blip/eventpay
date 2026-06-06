@@ -2,456 +2,253 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){ const t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6366f1">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="EventPay">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="shared.css">
 <style>
-/* ---- ADMIN LAYOUT ---- */
 .admin-navbar {
-  position: sticky; top:0; z-index:100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px;
-  background: rgba(11,15,26,0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap; gap: 10px;
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;background:var(--navbar-bg);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+  flex-wrap:wrap;gap:8px;
 }
-.admin-nav-left { display:flex; align-items:center; gap:12px; }
-.admin-nav-logo { font-weight:800; font-size:16px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.admin-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(99,102,241,0.15); color:var(--accent); border:1px solid rgba(99,102,241,0.3); }
-.session-timer { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); }
-.admin-nav-right { display:flex; gap:8px; }
-.admin-nav-btn {
-  padding: 8px 14px; border-radius:10px; font-family:'Sora',sans-serif;
-  font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;
-  border: 1px solid var(--border); background:var(--surface); color:var(--text);
-}
-.admin-nav-btn:hover { background:rgba(255,255,255,0.08); }
-.admin-nav-btn.danger { border-color:rgba(239,68,68,0.3); color:#f87171; }
-.admin-nav-btn.danger:hover { background:rgba(239,68,68,0.1); }
+.admin-nav-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.admin-nav-logo{font-weight:800;font-size:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.admin-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);}
+.session-timer{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);}
+.admin-nav-right{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.admin-nav-btn{padding:7px 12px;border-radius:10px;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);background:var(--surface);color:var(--text);}
+.admin-nav-btn:hover{background:rgba(255,255,255,0.08);}
+.admin-nav-btn.danger{border-color:rgba(239,68,68,0.3);color:#f87171;}
+.admin-nav-btn.danger:hover{background:rgba(239,68,68,0.1);}
+.admin-nav-btn.excel{background:#217346;color:#fff;border-color:#217346;}
+.admin-nav-btn.excel:hover{background:#1a5c39;}
 
-/* TABS */
-.tab-bar {
-  display:flex; gap:4px; padding:12px 20px;
-  background:var(--surface); border-bottom:1px solid var(--border);
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
+/* READ-ONLY BANNER */
+.readonly-banner{
+  background:rgba(245,158,11,0.12);border-bottom:1px solid rgba(245,158,11,0.3);
+  color:#fbbf24;padding:10px 20px;text-align:center;font-size:13px;font-weight:600;
+  display:none;
 }
-.tab-bar::-webkit-scrollbar { height:2px; }
-.tab-btn {
-  padding:9px 18px; border-radius:10px;
-  font-family:'Sora',sans-serif; font-size:13px; font-weight:600;
-  cursor:pointer; border:none; white-space:nowrap;
-  background:transparent; color:var(--text-muted);
-  transition:all 0.2s;
-}
-.tab-btn:hover { background:rgba(255,255,255,0.05); color:var(--text); }
-.tab-btn.active { background:rgba(99,102,241,0.15); color:var(--accent); }
+.readonly-banner.show{display:block;}
 
-.tab-panel { display:none; }
-.tab-panel.active { display:block; animation:fadeIn 0.3s ease; }
+.tab-bar{display:flex;gap:4px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-bar::-webkit-scrollbar{height:2px;}
+.tab-btn{padding:8px 16px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;white-space:nowrap;background:transparent;color:var(--text-muted);transition:all 0.2s;}
+.tab-btn:hover{background:rgba(99,102,241,0.06);color:var(--text);}
+.tab-btn.active{background:rgba(99,102,241,0.15);color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeIn 0.3s ease;}
 
+/* ANALYTICS */
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card.total::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.stat-card.verified::before{background:linear-gradient(90deg,#10b981,#059669);}
+.stat-card.pending::before{background:linear-gradient(90deg,#3b82f6,#1d4ed8);}
+.stat-card.rejected::before{background:linear-gradient(90deg,#ef4444,#b91c1c);}
+.stat-label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-bottom:4px;}
+.stat-count{font-size:11px;color:var(--text-dim);}
+.stat-card.total    .stat-value{color:var(--accent);}
+.stat-card.verified .stat-value{color:var(--success);}
+.stat-card.pending  .stat-value{color:#60a5fa;}
+.stat-card.rejected .stat-value{color:var(--danger);}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+@media(max-width:600px){.charts-row{grid-template-columns:1fr;}}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;}
+.chart-card h3{font-size:12px;font-weight:700;margin-bottom:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;}
+.chart-wrap{position:relative;height:180px;}
 
-  // After successful login, store role
-localStorage.setItem('adminRole', data.role);
-localStorage.setItem('adminAccess', data.accessLevel);
+/* TABLE */
+.table-controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center;}
+.search-input,.sort-select{padding:10px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;transition:all 0.2s;}
+.search-input{flex:1;min-width:160px;}
+.search-input:focus,.sort-select:focus{outline:none;border-color:var(--accent);}
+.sort-select{min-width:130px;cursor:pointer;}
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;min-width:700px;font-size:13px;}
+thead th{padding:11px 12px;background:var(--surface2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);text-align:left;white-space:nowrap;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:rgba(99,102,241,0.04);}
+tbody tr:last-child{border-bottom:none;}
+tbody td{padding:11px 12px;vertical-align:middle;}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:11px;}
+.td-amount{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);}
+.status-select{padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Sora',sans-serif;font-size:11px;font-weight:600;cursor:pointer;min-width:100px;}
+.btn-sm{padding:5px 10px;border-radius:8px;font-family:'Sora',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;}
+.btn-verify{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);}
+.btn-reject{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);}
+.btn-save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;padding:10px 22px;border-radius:12px;font-size:13px;font-family:'Sora',sans-serif;font-weight:700;cursor:pointer;border:none;}
+.btn-verify:hover{background:rgba(16,185,129,0.25);}
+.btn-reject:hover{background:rgba(239,68,68,0.25);}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--accent-glow);}
+.btn-toggle-public{padding:4px 8px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;}
+.btn-toggle-public.show{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);}
+.btn-toggle-public.hide{background:rgba(100,116,139,0.15);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);}
+.table-footer{display:flex;justify-content:space-between;align-items:center;padding:14px 0;flex-wrap:wrap;gap:10px;}
+.record-count{font-size:13px;color:var(--text-muted);}
 
-// Then use this to control what's visible:
-function applyRoleRestrictions() {
-  const role   = localStorage.getItem('adminRole');
-  const access = localStorage.getItem('adminAccess');
+/* COMPLAINTS */
+.complaint-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;transition:border-color 0.2s;}
+.complaint-card:hover{border-color:var(--border2);}
+.complaint-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.complaint-person h4{font-size:14px;font-weight:700;margin-bottom:2px;}
+.complaint-person p{font-size:11px;color:var(--text-muted);}
+.complaint-text{font-size:13px;color:var(--text-muted);line-height:1.6;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:12px;}
+.reply-section{border-top:1px solid var(--border);padding-top:12px;}
+.reply-section label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;display:block;}
+.reply-textarea{width:100%;padding:10px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;resize:none;transition:all 0.2s;box-sizing:border-box;}
+.reply-textarea:focus{outline:none;border-color:var(--accent);}
+.reply-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.btn-reply-send{padding:8px 16px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-reply-send:hover{transform:translateY(-1px);box-shadow:0 4px 14px var(--accent-glow);}
 
-  // Only superadmin sees Settings, Activity Log, and Delete buttons
-  if (role !== 'superadmin') {
-    document.querySelectorAll('.superadmin-only').forEach(el => el.style.display = 'none');
-  }
-  // Verifier can approve payments but not manage complaints
-  if (access === 'verify_only') {
-    document.querySelectorAll('.complaints-section').forEach(el => el.style.display = 'none');
-  }
-  // Viewer can only see, not edit anything
-  if (access === 'view_only') {
-    document.querySelectorAll('button.action-btn').forEach(el => el.disabled = true);
-  }
-}
-// Call this after page load
-applyRoleRestrictions();
+/* ACTIVITY */
+.activity-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
+.activity-item:last-child{border-bottom:none;}
+.activity-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;}
+.activity-info{flex:1;}
+.activity-action{font-size:13px;font-weight:600;margin-bottom:2px;}
+.activity-meta{font-size:11px;color:var(--text-dim);}
+.activity-time{font-size:11px;color:var(--text-dim);white-space:nowrap;font-family:'JetBrains Mono',monospace;}
 
-
-  
-
-/* ---- ANALYTICS ---- */
-.analytics-grid {
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap:14px;
-  margin-bottom:24px;
-}
-.stat-card {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px 18px;
-  position:relative;
-  overflow:hidden;
-  transition:transform 0.2s, box-shadow 0.2s;
-}
-.stat-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
-.stat-card::before {
-  content:''; position:absolute;
-  top:0; left:0; right:0; height:3px;
-}
-.stat-card.total::before   { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
-.stat-card.verified::before { background:linear-gradient(90deg,#10b981,#059669); }
-.stat-card.pending::before  { background:linear-gradient(90deg,#3b82f6,#1d4ed8); }
-.stat-card.rejected::before { background:linear-gradient(90deg,#ef4444,#b91c1c); }
-.stat-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:10px; }
-.stat-value { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; margin-bottom:6px; }
-.stat-count { font-size:12px; color:var(--text-dim); }
-.stat-card.total   .stat-value { color:var(--accent); }
-.stat-card.verified .stat-value { color:var(--success); }
-.stat-card.pending  .stat-value { color:#60a5fa; }
-.stat-card.rejected .stat-value { color:var(--danger); }
-
-.charts-row {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-bottom:24px;
-}
-@media (max-width:600px) { .charts-row { grid-template-columns:1fr; } }
-.chart-card {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-}
-.chart-card h3 { font-size:14px; font-weight:700; margin-bottom:16px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-.chart-wrap { position:relative; height:200px; }
-
-/* ---- TABLE ---- */
-.table-controls {
-  display:flex; flex-wrap:wrap; gap:10px;
-  margin-bottom:16px; align-items:center;
-}
-.search-input {
-  flex:1; min-width:180px;
-  padding:10px 14px;
-  background:var(--bg);
-  border:1.5px solid var(--border);
-  border-radius:10px;
-  color:var(--text);
-  font-family:'Sora',sans-serif;
-  font-size:14px;
-  transition:all 0.2s;
-}
-.search-input:focus { outline:none; border-color:var(--accent); }
-.sort-select {
-  padding:10px 14px;
-  background:var(--bg);
-  border:1.5px solid var(--border);
-  border-radius:10px;
-  color:var(--text);
-  font-family:'Sora',sans-serif;
-  font-size:14px;
-  cursor:pointer;
-  min-width:140px;
-}
-.sort-select:focus { outline:none; border-color:var(--accent); }
-
-.table-wrap {
-  overflow-x:auto;
-  border-radius:16px;
-  border:1px solid var(--border);
-  -webkit-overflow-scrolling:touch;
-}
-table {
-  width:100%; border-collapse:collapse;
-  min-width:700px;
-  font-size:13px;
-}
-thead th {
-  padding:13px 14px;
-  background:var(--surface2);
-  font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.6px;
-  color:var(--text-muted);
-  text-align:left; white-space:nowrap;
-  border-bottom:1px solid var(--border);
-}
-tbody tr {
-  border-bottom:1px solid var(--border);
-  transition:background 0.15s;
-}
-tbody tr:hover { background:rgba(255,255,255,0.025); }
-tbody tr:last-child { border-bottom:none; }
-tbody td {
-  padding:12px 14px;
-  vertical-align:middle;
-}
-.td-mono { font-family:'JetBrains Mono',monospace; font-size:12px; }
-.td-amount { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); }
-
-.status-select {
-  padding:5px 10px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Sora',sans-serif;
-  font-size:12px; font-weight:600;
-  cursor:pointer;
-  min-width:120px;
-}
-.status-select:focus { outline:none; }
-
-.btn-sm {
-  padding:6px 12px; border-radius:8px;
-  font-family:'Sora',sans-serif;
-  font-size:12px; font-weight:600;
-  cursor:pointer; border:none;
-  transition:all 0.2s;
-}
-.btn-verify   { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); }
-.btn-reject   { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); }
-.btn-save     { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; padding:11px 24px; border-radius:12px; font-size:14px; }
-.btn-verify:hover { background:rgba(16,185,129,0.25); }
-.btn-reject:hover { background:rgba(239,68,68,0.25); }
-.btn-save:hover   { transform:translateY(-1px); box-shadow:0 4px 16px var(--accent-glow); }
-
-.table-footer {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:16px 0; flex-wrap:wrap; gap:10px;
-}
-.record-count { font-size:13px; color:var(--text-muted); }
-
-/* ---- COMPLAINTS ---- */
-.complaint-card {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:14px;
-  transition:border-color 0.2s;
-}
-.complaint-card:hover { border-color:var(--border2); }
-.complaint-header {
-  display:flex; justify-content:space-between; align-items:flex-start;
-  margin-bottom:12px; flex-wrap:wrap; gap:8px;
-}
-.complaint-person h4 { font-size:15px; font-weight:700; margin-bottom:3px; }
-.complaint-person p  { font-size:12px; color:var(--text-muted); }
-.complaint-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.complaint-text {
-  font-size:14px; color:var(--text-muted); line-height:1.6;
-  padding:12px; background:var(--bg); border-radius:10px;
-  margin-bottom:14px;
-}
-.reply-section {
-  border-top:1px solid var(--border);
-  padding-top:14px;
-  margin-top:12px;
-}
-.reply-section label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; display:block; }
-.reply-textarea {
-  width:100%; padding:12px; background:var(--bg);
-  border:1.5px solid var(--border); border-radius:10px;
-  color:var(--text); font-family:'Sora',sans-serif; font-size:13px;
-  resize:none; transition:all 0.2s; box-sizing:border-box;
-}
-.reply-textarea:focus { outline:none; border-color:var(--accent); }
-.reply-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-.btn-reply-send {
-  padding:9px 18px; border-radius:10px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:white; border:none; font-family:'Sora',sans-serif;
-  font-size:13px; font-weight:700; cursor:pointer;
-  transition:all 0.2s;
-}
-.btn-reply-send:hover { transform:translateY(-1px); box-shadow:0 4px 14px var(--accent-glow); }
-
-/* ---- ACTIVITY LOG ---- */
-.activity-item {
-  display:flex; gap:14px; align-items:flex-start;
-  padding:14px 0; border-bottom:1px solid var(--border);
-}
-.activity-item:last-child { border-bottom:none; }
-.activity-dot {
-  width:10px; height:10px; border-radius:50%;
-  background:var(--accent); margin-top:5px; flex-shrink:0;
-}
-.activity-info { flex:1; }
-.activity-action { font-size:13px; font-weight:600; margin-bottom:3px; }
-.activity-meta   { font-size:12px; color:var(--text-dim); }
-.activity-time   { font-size:12px; color:var(--text-dim); white-space:nowrap; font-family:'JetBrains Mono',monospace; }
-
-/* EMPTY STATE */
-.empty-state {
-  text-align:center; padding:60px 20px; color:var(--text-muted);
-}
-.empty-state .e-icon { font-size:48px; margin-bottom:12px; }
-.empty-state h3 { font-size:16px; font-weight:700; margin-bottom:8px; }
-.empty-state p { font-size:13px; }
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.empty-state .e-icon{font-size:44px;margin-bottom:12px;}
+.empty-state h3{font-size:15px;font-weight:700;margin-bottom:6px;}
+.empty-state p{font-size:13px;}
 </style>
 </head>
 <body>
 
-<!-- TOP ADMIN NAV -->
+<!-- READ-ONLY BANNER (shown for viewers) -->
+<div class="readonly-banner" id="readonlyBanner">
+  👁️ View Only Mode — You can see all data but cannot make any changes
+</div>
+
 <div class="admin-navbar">
   <div class="admin-nav-left">
     <span class="admin-nav-logo">⚡ Admin Dashboard</span>
-    <span class="admin-badge" id="adminRoleBadge">Admin</span>
+    <span class="admin-badge" id="adminRoleBadge">ADMIN</span>
     <span class="session-timer" id="sessionTimer"></span>
   </div>
   <div class="admin-nav-right">
-    <button class="admin-nav-btn" onclick="window.print()">📄 Export PDF</button>
-    <button onclick="exportToExcel()" style="background:#217346;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer">
-  📊 Download Excel
-</button>
+    <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="admin-nav-btn" onclick="window.print()">📄 PDF</button>
+    <button class="admin-nav-btn excel" onclick="exportToExcel()">📊 Excel</button>
     <button class="admin-nav-btn" onclick="loadAll()">🔄 Refresh</button>
     <button class="admin-nav-btn danger" onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
-<!-- TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('analytics')">📊 Analytics</button>
-  <button class="tab-btn" onclick="switchTab('payments')">💳 Payments</button>
-  <button class="tab-btn" onclick="switchTab('complaints')">📋 Complaints</button>
-  <button class="tab-btn" onclick="switchTab('activity')">🕒 Activity Log</button>
+  <button class="tab-btn active" onclick="switchTab('analytics',this)">📊 Analytics</button>
+  <button class="tab-btn" onclick="switchTab('payments',this)">💳 Payments</button>
+  <button class="tab-btn" onclick="switchTab('complaints',this)">📋 Complaints</button>
+  <button class="tab-btn" onclick="switchTab('activity',this)">🕒 Activity</button>
 </div>
 
 <div class="page-content" style="max-width:1100px">
 
-<!-- ====== ANALYTICS TAB ====== -->
+<!-- ANALYTICS -->
 <div class="tab-panel active" id="tab-analytics">
-
   <div class="analytics-grid">
-    <div class="stat-card total">
-      <div class="stat-label">Total Collected</div>
-      <div class="stat-value" id="statTotal">₹0</div>
-      <div class="stat-count" id="statTotalCount">0 payments</div>
-    </div>
-    <div class="stat-card verified">
-      <div class="stat-label">Verified</div>
-      <div class="stat-value" id="statVerified">₹0</div>
-      <div class="stat-count" id="statVerifiedCount">0 verified</div>
-    </div>
-    <div class="stat-card pending">
-      <div class="stat-label">Pending</div>
-      <div class="stat-value" id="statPending">₹0</div>
-      <div class="stat-count" id="statPendingCount">0 pending</div>
-    </div>
-    <div class="stat-card rejected">
-      <div class="stat-label">Not Verified</div>
-      <div class="stat-value" id="statRejected">₹0</div>
-      <div class="stat-count" id="statRejectedCount">0 rejected</div>
-    </div>
+    <div class="stat-card total">   <div class="stat-label">Total Collected</div><div class="stat-value" id="statTotal">₹0</div><div class="stat-count" id="statTotalCount">0 payments</div></div>
+    <div class="stat-card verified"><div class="stat-label">Verified</div><div class="stat-value" id="statVerified">₹0</div><div class="stat-count" id="statVerifiedCount">0 verified</div></div>
+    <div class="stat-card pending"> <div class="stat-label">Pending</div><div class="stat-value" id="statPending">₹0</div><div class="stat-count" id="statPendingCount">0 pending</div></div>
+    <div class="stat-card rejected"><div class="stat-label">Not Verified</div><div class="stat-value" id="statRejected">₹0</div><div class="stat-count" id="statRejectedCount">0 rejected</div></div>
   </div>
-
   <div class="charts-row">
-    <div class="chart-card">
-      <h3>Payment Distribution</h3>
-      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <h3>Top Villages</h3>
-      <div class="chart-wrap"><canvas id="villageChart"></canvas></div>
-    </div>
+    <div class="chart-card"><h3>Status Distribution</h3><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
+    <div class="chart-card"><h3>Top Villages</h3><div class="chart-wrap"><canvas id="villageChart"></canvas></div></div>
   </div>
-
-  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px;">
-    <h3 style="font-size:14px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:16px;">Recent Activity</h3>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+    <h3 style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;">Recent Activity</h3>
     <div id="activityList"><div class="spinner"></div></div>
   </div>
 </div>
 
-<!-- ====== PAYMENTS TAB ====== -->
+<!-- PAYMENTS -->
 <div class="tab-panel" id="tab-payments">
   <div class="table-controls">
-    <input class="search-input" type="text" id="searchInput" placeholder="🔍 Search name, village, phone, UTR..." oninput="filterTable()">
-    <select class="sort-select" id="sortSelect" onchange="sortTable()">
+    <input class="search-input" type="text" id="searchInput" placeholder="🔍 Search name, village, phone, UTR, RefID..." oninput="applyFilters()">
+    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
       <option value="">Sort by...</option>
       <option value="date-desc">Date (Newest)</option>
       <option value="date-asc">Date (Oldest)</option>
       <option value="amount-desc">Amount (High→Low)</option>
       <option value="amount-asc">Amount (Low→High)</option>
-      <option value="village">Village (A→Z)</option>
-      <option value="name">Name (A→Z)</option>
+      <option value="village">Village A→Z</option>
+      <option value="name">Name A→Z</option>
     </select>
-    <select class="sort-select" id="filterStatus" onchange="filterTable()" style="min-width:120px">
+    <select class="sort-select" id="filterStatus" onchange="applyFilters()" style="min-width:110px">
       <option value="">All Status</option>
       <option value="Pending">Pending</option>
       <option value="Verified">Verified</option>
       <option value="Not Verified">Not Verified</option>
     </select>
   </div>
-
   <div class="table-wrap">
-    <table id="paymentsTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Date & Time</th>
-          <th>Ref ID</th>
-          <th>Name</th>
-          <th>Village</th>
-          <th>Phone</th>
-          <th>Amount</th>
-          <th>UTR</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="paymentsBody">
-        <tr><td colspan="10" style="text-align:center; padding:40px;"><div class="spinner"></div></td></tr>
-      </tbody>
+    <table>
+      <thead><tr>
+        <th>#</th><th>Date / Time</th><th>Ref ID</th><th>Name</th><th>Village</th>
+        <th>Phone</th><th>Amount</th><th>UTR</th><th>Status</th>
+        <th id="actionsHeader">Actions</th><th id="publicHeader">Public</th>
+      </tr></thead>
+      <tbody id="paymentsBody"><tr><td colspan="11" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
     </table>
   </div>
-
   <div class="table-footer">
     <span class="record-count" id="recordCount">Loading...</span>
-    <button class="btn-sm btn-save" onclick="saveChanges()">💾 Save All Changes</button>
+    <button class="btn-save" id="saveBtn" onclick="saveChanges()">💾 Save All Changes</button>
   </div>
 </div>
 
-<!-- ====== COMPLAINTS TAB ====== -->
+<!-- COMPLAINTS -->
 <div class="tab-panel" id="tab-complaints">
-  <div style="margin-bottom:16px;">
-    <input class="search-input" type="text" id="cSearchInput" placeholder="🔍 Search complaints..." oninput="filterComplaints()" style="max-width:320px">
+  <div style="margin-bottom:14px;">
+    <input class="search-input" type="text" id="cSearchInput" placeholder="🔍 Search complaints..." oninput="filterComplaints()" style="max-width:300px">
   </div>
   <div id="complaintsContainer"><div class="empty-state"><div class="spinner"></div></div></div>
 </div>
 
-<!-- ====== ACTIVITY LOG TAB ====== -->
+<!-- ACTIVITY LOG -->
 <div class="tab-panel" id="tab-activity">
-  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px;">
-    <h3 style="font-size:15px; font-weight:700; margin-bottom:20px;">Recent Admin Activities</h3>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:18px;">Recent Admin Activities</h3>
     <div id="fullActivityList"><div class="spinner"></div></div>
   </div>
 </div>
 
-</div><!-- /page-content -->
-
+</div>
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="config.js"></script>
 <script>
-// ---- SESSION CHECK ----
-const token  = sessionStorage.getItem("adminToken");
-const expiry = sessionStorage.getItem("adminExpiry");
+// ---- AUTH + ROLE CHECK ----
+const token     = sessionStorage.getItem("adminToken");
+const expiry    = sessionStorage.getItem("adminExpiry");
 const adminUser = sessionStorage.getItem("adminUser") || "Admin";
 const adminRole = sessionStorage.getItem("adminRole") || "admin";
+const adminAccess = sessionStorage.getItem("adminAccess") || "full";
 
-if (!token) { location.href = "admin-login.html"; }
+if (!token) location.href = "admin-login.html";
+
+// Apply read-only mode for viewer role
+const isReadOnly = adminAccess === 'view_only' || adminAccess === 'view' || adminRole === 'viewer';
+if (isReadOnly) {
+  document.getElementById("readonlyBanner").classList.add("show");
+  // Hide action-related buttons
+  document.getElementById("saveBtn") && (document.getElementById("saveBtn").style.display = "none");
+}
 
 document.getElementById("adminRoleBadge").textContent = adminRole.toUpperCase();
 
@@ -459,389 +256,311 @@ document.getElementById("adminRoleBadge").textContent = adminRole.toUpperCase();
 let timerInterval;
 function updateTimer() {
   if (!expiry) return;
-  const remaining = new Date(expiry) - Date.now();
-  if (remaining <= 0) {
+  const rem = new Date(expiry) - Date.now();
+  if (rem <= 0) {
     clearInterval(timerInterval);
     toast("Session expired. Logging out...", "error");
     setTimeout(() => { sessionStorage.clear(); location.href = "admin-login.html"; }, 1500);
     return;
   }
-  const m = Math.floor(remaining / 60000);
-  const s = Math.floor((remaining % 60000) / 1000);
+  const m = Math.floor(rem/60000), s = Math.floor((rem%60000)/1000);
   document.getElementById("sessionTimer").textContent = `Session: ${m}:${String(s).padStart(2,"0")}`;
 }
 updateTimer();
 timerInterval = setInterval(updateTimer, 1000);
 
 function logout() {
-  if (!confirm("Are you sure you want to logout?")) return;
-  sessionStorage.clear();
-  location.href = "admin-login.html";
+  if (!confirm("Logout?")) return;
+  sessionStorage.clear(); location.href = "admin-login.html";
 }
 
 // ---- DATA ----
-let allPayments = [];
-let allComplaints = [];
-let pendingUpdates = {};
+let allPayments = [], allComplaints = [], pendingUpdates = {};
 let pieChart, villageChart;
 
 function getHeaders() {
-  return {
-    adminToken:  token,
-    adminExpiry: expiry,
-    adminUser:   adminUser
-  };
+  return { adminToken: token, adminExpiry: expiry, adminUser };
 }
 
-function loadAll() {
-  loadPayments();
-  loadComplaints();
-  loadActivity();
-}
+function loadAll() { loadPayments(); loadComplaints(); loadActivity(); }
 
-// Load payments
 function loadPayments() {
-  const params = new URLSearchParams({ action:"getPayments", ...getHeaders() });
-  fetch(APP_CONFIG.SCRIPT_URL + "?" + params)
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) { handleAuthError(data.error); return; }
-      allPayments = data.payments || [];
-      renderTable(allPayments);
-      updateAnalytics(allPayments);
-    })
-    .catch(() => toast("Failed to load payments", "error"));
+  const p = new URLSearchParams({ action:"getPayments", ...getHeaders() });
+  fetch(APP_CONFIG.SCRIPT_URL + "?" + p).then(r=>r.json()).then(data=>{
+    if (data.error) { handleAuthError(data.error); return; }
+    allPayments = data.payments || [];
+    applyFilters();
+    updateAnalytics(allPayments);
+  }).catch(()=>toast("Failed to load payments","error"));
 }
 
-// Load complaints
 function loadComplaints() {
-  const params = new URLSearchParams({ action:"getComplaints", ...getHeaders() });
-  fetch(APP_CONFIG.SCRIPT_URL + "?" + params)
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) return;
-      allComplaints = data.complaints || [];
-      renderComplaints(allComplaints);
-    })
-    .catch(() => {});
+  const p = new URLSearchParams({ action:"getComplaints", ...getHeaders() });
+  fetch(APP_CONFIG.SCRIPT_URL + "?" + p).then(r=>r.json()).then(data=>{
+    if (data.error) return;
+    allComplaints = data.complaints || [];
+    renderComplaints(allComplaints);
+  }).catch(()=>{});
 }
 
-// Load activity
 function loadActivity() {
-  const params = new URLSearchParams({ action:"getActivity", ...getHeaders() });
-  fetch(APP_CONFIG.SCRIPT_URL + "?" + params)
-    .then(r => r.json())
-    .then(data => {
-      const acts = data.activities || [];
-      const html = acts.length === 0
-        ? '<p style="color:var(--text-dim); font-size:13px">No recent activity.</p>'
-        : acts.slice(0,8).map(a => `
-            <div class="activity-item">
-              <div class="activity-dot"></div>
-              <div class="activity-info">
-                <div class="activity-action">${a.action || "—"} <span style="color:var(--accent)">${a.user || ""}</span></div>
-                <div class="activity-meta">${a.detail || ""}</div>
-              </div>
-              <div class="activity-time">${a.date || ""} ${a.time || ""}</div>
-            </div>`).join("");
-      document.getElementById("activityList").innerHTML = html;
-      document.getElementById("fullActivityList").innerHTML = acts.length === 0
-        ? '<p style="color:var(--text-dim)">No activity logged yet.</p>'
-        : acts.map(a => `
-            <div class="activity-item">
-              <div class="activity-dot"></div>
-              <div class="activity-info">
-                <div class="activity-action">${a.action || "—"} — <span style="color:var(--text-muted)">${a.user || ""}</span></div>
-                <div class="activity-meta">${a.detail || ""}</div>
-              </div>
-              <div class="activity-time">${a.date || ""}<br>${a.time || ""}</div>
-            </div>`).join("");
-    }).catch(() => {});
+  const p = new URLSearchParams({ action:"getActivity", ...getHeaders() });
+  fetch(APP_CONFIG.SCRIPT_URL + "?" + p).then(r=>r.json()).then(data=>{
+    const acts = data.activities || [];
+    const html = acts.length === 0
+      ? '<p style="color:var(--text-dim);font-size:13px">No recent activity.</p>'
+      : acts.slice(0,8).map(a=>`
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div class="activity-info">
+              <div class="activity-action">${a.action||"—"} <span style="color:var(--accent)">${a.user||""}</span></div>
+              <div class="activity-meta">${a.detail||""}</div>
+            </div>
+            <div class="activity-time">${a.date||""}&nbsp;${a.time||""}</div>
+          </div>`).join('');
+    document.getElementById("activityList").innerHTML = html;
+    document.getElementById("fullActivityList").innerHTML = acts.length===0
+      ? '<p style="color:var(--text-dim)">No activity yet.</p>'
+      : acts.map(a=>`
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div class="activity-info">
+              <div class="activity-action">${a.action||"—"} — <span style="color:var(--text-muted)">${a.user||""}</span></div>
+              <div class="activity-meta">${a.detail||""}</div>
+            </div>
+            <div class="activity-time">${a.date||""}<br>${a.time||""}</div>
+          </div>`).join('');
+  }).catch(()=>{});
 }
 
 // ---- ANALYTICS ----
 function updateAnalytics(payments) {
-  let total=0, verified=0, pending=0, rejected=0;
-  let vCount=0, pCount=0, rCount=0;
-  const villageMap = {};
+  let total=0,verified=0,pending=0,rejected=0,vC=0,pC=0,rC=0;
+  const vMap={};
+  payments.forEach(p=>{
+    const amt=Number(p.Amount)||0, st=(p.Status||"Pending").trim();
+    total+=amt;
+    if(st==="Verified")     {verified+=amt;vC++;}
+    else if(st==="Pending") {pending+=amt;pC++;}
+    else                    {rejected+=amt;rC++;}
+    const vill=p.Village||"Unknown";
+    vMap[vill]=(vMap[vill]||0)+amt;
+  });
+  const fmt=v=>"₹"+v.toLocaleString("en-IN");
+  document.getElementById("statTotal").textContent=fmt(total);
+  document.getElementById("statVerified").textContent=fmt(verified);
+  document.getElementById("statPending").textContent=fmt(pending);
+  document.getElementById("statRejected").textContent=fmt(rejected);
+  document.getElementById("statTotalCount").textContent=payments.length+" payments";
+  document.getElementById("statVerifiedCount").textContent=vC+" verified";
+  document.getElementById("statPendingCount").textContent=pC+" pending";
+  document.getElementById("statRejectedCount").textContent=rC+" rejected";
 
-  payments.forEach(p => {
-    const amt = Number(p.Amount) || 0;
-    const st  = (p.Status || "Pending").trim();
-    total += amt;
-    if (st === "Verified")     { verified += amt; vCount++; }
-    else if (st === "Pending") { pending  += amt; pCount++; }
-    else                       { rejected += amt; rCount++; }
-    const vill = p.Village || "Unknown";
-    villageMap[vill] = (villageMap[vill] || 0) + amt;
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById("pieChart").getContext("2d"),{
+    type:"doughnut",
+    data:{labels:["Verified","Pending","Not Verified"],datasets:[{data:[vC,pC,rC],backgroundColor:["#10b981","#3b82f6","#ef4444"],borderWidth:0,spacing:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"var(--text-muted)",padding:10,font:{size:11,family:"Sora"}}}},animation:{duration:600}}
   });
 
-  const fmt = v => "₹" + v.toLocaleString("en-IN");
-  document.getElementById("statTotal").textContent     = fmt(total);
-  document.getElementById("statVerified").textContent  = fmt(verified);
-  document.getElementById("statPending").textContent   = fmt(pending);
-  document.getElementById("statRejected").textContent  = fmt(rejected);
-  document.getElementById("statTotalCount").textContent    = payments.length + " payments";
-  document.getElementById("statVerifiedCount").textContent = vCount + " verified";
-  document.getElementById("statPendingCount").textContent  = pCount + " pending";
-  document.getElementById("statRejectedCount").textContent = rCount + " rejected";
-
-  // Pie chart
-  if (pieChart) pieChart.destroy();
-  const pieCtx = document.getElementById("pieChart").getContext("2d");
-  pieChart = new Chart(pieCtx, {
-    type: "doughnut",
-    data: {
-      labels: ["Verified","Pending","Not Verified"],
-      datasets: [{
-        data: [vCount, pCount, rCount],
-        backgroundColor: ["#10b981","#3b82f6","#ef4444"],
-        borderWidth: 0, borderRadius: 4, spacing: 3
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position:"bottom", labels: { color:"#94a3b8", padding:12, font:{size:11,family:"Sora"} } }
-      },
-      animation: { animateScale: true, duration: 800 }
-    }
-  });
-
-  // Village bar chart
-  const sortedVillages = Object.entries(villageMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if (villageChart) villageChart.destroy();
-  const vCtx = document.getElementById("villageChart").getContext("2d");
-  villageChart = new Chart(vCtx, {
-    type: "bar",
-    data: {
-      labels: sortedVillages.map(v => v[0]),
-      datasets: [{
-        label: "Amount (₹)",
-        data: sortedVillages.map(v => v[1]),
-        backgroundColor: "rgba(99,102,241,0.6)",
-        borderColor: "rgba(99,102,241,0.9)",
-        borderWidth: 1, borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color:"#94a3b8", font:{size:10} }, grid: { display:false } },
-        y: { ticks: { color:"#94a3b8", font:{size:10} }, grid: { color:"rgba(255,255,255,0.05)" } }
-      },
-      animation: { duration: 800 }
-    }
+  const svs=Object.entries(vMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if(villageChart) villageChart.destroy();
+  villageChart = new Chart(document.getElementById("villageChart").getContext("2d"),{
+    type:"bar",
+    data:{labels:svs.map(v=>v[0]),datasets:[{label:"₹",data:svs.map(v=>v[1]),backgroundColor:"rgba(99,102,241,0.6)",borderColor:"rgba(99,102,241,0.9)",borderWidth:1,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:"var(--text-muted)",font:{size:10}},grid:{display:false}},y:{ticks:{color:"var(--text-muted)",font:{size:10}},grid:{color:"rgba(99,102,241,0.06)"}}},animation:{duration:600}}
   });
 }
 
 // ---- PAYMENTS TABLE ----
-let filteredPayments = [];
-
-function renderTable(payments) {
-  filteredPayments = [...payments];
-  applyFilters();
-}
-
 function applyFilters() {
-  const q    = document.getElementById("searchInput").value.toLowerCase();
-  const stF  = document.getElementById("filterStatus").value;
-  let data = allPayments.filter(p => {
-    const match = !q || [p.Name, p.Village, p.Phone, p.UTR, p.RefID].some(v => (v||"").toLowerCase().includes(q));
-    const stMatch = !stF || (p.Status||"").trim() === stF;
-    return match && stMatch;
+  const q   = (document.getElementById("searchInput")?.value||"").toLowerCase();
+  const stF = document.getElementById("filterStatus")?.value||"";
+  const sort= document.getElementById("sortSelect")?.value||"";
+  let data  = allPayments.filter(p=>{
+    const match=!q||[p.Name,p.Village,p.Phone,p.UTR,p.RefID].some(v=>(v||"").toLowerCase().includes(q));
+    const stMatch=!stF||(p.Status||"").trim()===stF;
+    return match&&stMatch;
   });
-  const sort = document.getElementById("sortSelect").value;
-  if (sort === "date-desc")    data.sort((a,b) => String(b.Date+b.Time).localeCompare(String(a.Date+a.Time)));
-  if (sort === "date-asc")     data.sort((a,b) => String(a.Date+a.Time).localeCompare(String(b.Date+b.Time)));
-  if (sort === "amount-desc")  data.sort((a,b) => (Number(b.Amount)||0) - (Number(a.Amount)||0));
-  if (sort === "amount-asc")   data.sort((a,b) => (Number(a.Amount)||0) - (Number(b.Amount)||0));
-  if (sort === "village")      data.sort((a,b) => (a.Village||"").localeCompare(b.Village||""));
-  if (sort === "name")         data.sort((a,b) => (a.Name||"").localeCompare(b.Name||""));
-  filteredPayments = data;
-  rebuildTable();
+  if(sort==="date-desc")   data.sort((a,b)=>String(b.Date+b.Time).localeCompare(String(a.Date+a.Time)));
+  if(sort==="date-asc")    data.sort((a,b)=>String(a.Date+a.Time).localeCompare(String(b.Date+b.Time)));
+  if(sort==="amount-desc") data.sort((a,b)=>(Number(b.Amount)||0)-(Number(a.Amount)||0));
+  if(sort==="amount-asc")  data.sort((a,b)=>(Number(a.Amount)||0)-(Number(b.Amount)||0));
+  if(sort==="village")     data.sort((a,b)=>(a.Village||"").localeCompare(b.Village||""));
+  if(sort==="name")        data.sort((a,b)=>(a.Name||"").localeCompare(b.Name||""));
+  rebuildTable(data);
 }
 
-function filterTable()  { applyFilters(); }
-function sortTable()    { applyFilters(); }
-
-function rebuildTable() {
+function rebuildTable(data) {
   const tbody = document.getElementById("paymentsBody");
-  document.getElementById("recordCount").textContent = filteredPayments.length + " records";
-  if (filteredPayments.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="e-icon">📭</div><h3>No records</h3><p>No payments match your search.</p></div></td></tr>`;
+  document.getElementById("recordCount").textContent = data.length + " records";
+  if(data.length===0){
+    tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="e-icon">📭</div><h3>No records</h3><p>No payments match your search.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = filteredPayments.map((p,i) => {
-    const st = (p.Status||"Pending").trim();
-    const stClass = st==="Verified" ? "badge-verified" : st==="Not Verified" ? "badge-notverified" : "badge-pending";
-    const curSt = pendingUpdates[p.RefID] || st;
+  tbody.innerHTML = data.map((p,i)=>{
+    const st=pendingUpdates[p.RefID]||(p.Status||"Pending").trim();
+    const stClass=st==="Verified"?"badge-verified":st==="Not Verified"?"badge-notverified":"badge-pending";
+    const isPublic=(p.ShowPublic||"Yes")!=="No";
+    const actionBtns = isReadOnly ? '<span style="font-size:11px;color:var(--text-dim)">View only</span>'
+      : `<div style="display:flex;gap:4px;flex-wrap:wrap">
+           <button class="btn-sm btn-verify" onclick="markStatus('${p.RefID}',${p._row},'Verified')">✓</button>
+           <button class="btn-sm btn-reject" onclick="markStatus('${p.RefID}',${p._row},'Not Verified')">✗</button>
+         </div>`;
+    const publicBtn = isReadOnly ? `<span class="badge ${isPublic?'badge-verified':'badge-closed'}">${isPublic?'👁️ Show':'🚫 Hide'}</span>`
+      : `<button class="btn-toggle-public ${isPublic?'show':'hide'}" onclick="togglePublic('${p.RefID}',${p._row},${!isPublic})">${isPublic?'👁️ Show':'🚫 Hide'}</button>`;
     return `<tr>
       <td style="color:var(--text-dim)">${i+1}</td>
       <td class="td-mono" style="font-size:11px">${p.Date||""}<br>${p.Time||""}</td>
-      <td class="td-mono" style="color:var(--accent); font-size:11px">${p.RefID||""}</td>
+      <td class="td-mono" style="color:var(--accent);font-size:11px">${p.RefID||""}</td>
       <td style="font-weight:600">${p.Name||"—"}</td>
       <td style="color:var(--text-muted)">${p.Village||"—"}</td>
       <td class="td-mono">${p.Phone||"—"}</td>
       <td class="td-amount">₹${Number(p.Amount||0).toLocaleString("en-IN")}</td>
       <td class="td-mono" style="font-size:11px">${p.UTR||"—"}</td>
-      <td><span class="badge ${stClass}">${curSt}</span></td>
-      <td>
-        <div style="display:flex; gap:6px">
-          <button class="btn-sm btn-verify" onclick="markStatus('${p.RefID}',${p._row},'Verified')">✓</button>
-          <button class="btn-sm btn-reject" onclick="markStatus('${p.RefID}',${p._row},'Not Verified')">✗</button>
-        </div>
-      </td>
+      <td><span class="badge ${stClass}">${st}</span></td>
+      <td>${actionBtns}</td>
+      <td>${publicBtn}</td>
     </tr>`;
-  }).join("");
+  }).join('');
 }
 
 function markStatus(refid, row, status) {
-  pendingUpdates[refid] = status;
-  // Update in allPayments
-  const p = allPayments.find(x => x.RefID === refid);
-  if (p) { p.Status = status; p._dirty = true; }
+  if(isReadOnly){toast("View Only: Cannot change status","error");return;}
+  pendingUpdates[refid]=status;
+  const p=allPayments.find(x=>x.RefID===refid);
+  if(p){p.Status=status;p._dirty=true;}
   applyFilters();
-  toast(`Marked as ${status}. Click "Save All Changes" to confirm.`, "info");
+  toast(`Marked as ${status} — click Save to confirm`,"info");
+}
+
+function togglePublic(refid, row, show) {
+  if(isReadOnly){toast("View Only: Cannot change","error");return;}
+  const showVal = show ? "Yes" : "No";
+  const p=allPayments.find(x=>x.RefID===refid);
+  if(p) p.ShowPublic=showVal;
+  const params=new URLSearchParams({action:"updatePublicDisplay",row,showPublic:showVal,...getHeaders()});
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:params}).then(r=>r.json()).then(res=>{
+    if(res.result==="Updated"){toast(show?"Payment shown in donor list":"Payment hidden from donor list","success");applyFilters();}
+  }).catch(()=>toast("Update failed","error"));
 }
 
 function saveChanges() {
-  const dirty = allPayments.filter(p => p._dirty);
-  if (dirty.length === 0) { toast("No changes to save.", "info"); return; }
-  const updates = dirty.map(p => ({ row: p._row, status: p.Status }));
-  const params = new URLSearchParams({
-    action:   "updatePayments",
-    updates:  JSON.stringify(updates),
-    adminUser,
-    adminToken: token, adminExpiry: expiry
-  });
-  fetch(APP_CONFIG.SCRIPT_URL, { method:"POST", body: params })
-    .then(r => r.json())
-    .then(res => {
-      if (res.result === "Saved") {
-        dirty.forEach(p => { delete p._dirty; });
-        pendingUpdates = {};
-        toast("✅ Changes saved to Google Sheets!", "success");
-        loadActivity();
-      } else {
-        toast("Save failed. Try again.", "error");
-      }
-    })
-    .catch(() => toast("Connection error. Try again.", "error"));
+  if(isReadOnly){toast("View Only: Cannot save","error");return;}
+  const dirty=allPayments.filter(p=>p._dirty);
+  if(!dirty.length){toast("No changes to save","info");return;}
+  const updates=dirty.map(p=>({row:p._row,status:p.Status}));
+  const params=new URLSearchParams({action:"updatePayments",updates:JSON.stringify(updates),adminUser,adminToken:token,adminExpiry:expiry});
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:params}).then(r=>r.json()).then(res=>{
+    if(res.result==="Saved"){dirty.forEach(p=>delete p._dirty);pendingUpdates={};toast("✅ Saved to Google Sheets!","success");loadActivity();}
+    else toast("Save failed","error");
+  }).catch(()=>toast("Connection error","error"));
+}
+
+// ---- EXPORT TO EXCEL ----
+function exportToExcel() {
+  if(!allPayments.length){toast("No data to export","error");return;}
+  const headers=["RefID","Date","Time","Name","Village","Phone","Amount","UTR","Status","VerifiedBy","VerifiedAt"];
+  const rows=allPayments.map(p=>headers.map(h=>`"${String(p[h]||'').replace(/"/g,'""')}"`).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='EventPay_Payments_'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-')+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Excel file downloaded!","success");
 }
 
 // ---- COMPLAINTS ----
 function renderComplaints(complaints) {
-  const container = document.getElementById("complaintsContainer");
-  const q = (document.getElementById("cSearchInput")?.value || "").toLowerCase();
-  const filtered = !q ? complaints : complaints.filter(c =>
-    [c.Name, c.Village, c.Phone, c.Email, c.Complaint].some(v => (v||"").toLowerCase().includes(q))
-  );
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="e-icon">😊</div><h3>No Complaints</h3><p>No complaint records found.</p></div>`;
-    return;
-  }
-  container.innerHTML = filtered.map((c,i) => {
-    const st = c.Status || "Open";
-    const stClass = st === "Closed" ? "badge-closed" : "badge-open";
-    const existingReply = c.AdminReply || "";
+  const container=document.getElementById("complaintsContainer");
+  const q=(document.getElementById("cSearchInput")?.value||"").toLowerCase();
+  const filtered=!q?complaints:complaints.filter(c=>[c.Name,c.Village,c.Phone,c.Email,c.Complaint].some(v=>(v||"").toLowerCase().includes(q)));
+  if(!filtered.length){container.innerHTML=`<div class="empty-state"><div class="e-icon">😊</div><h3>No Complaints</h3><p>No complaints found.</p></div>`;return;}
+  container.innerHTML=filtered.map((c,i)=>{
+    const st=c.Status||"Open";
+    const stClass=st==="Closed"?"badge-closed":"badge-open";
+    const prevReply=c.AdminReply||"";
+    const replySection=isReadOnly?
+      (prevReply?`<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px;font-size:12px;color:#6ee7b7;margin-top:10px"><strong>Admin reply:</strong> ${prevReply}</div>`:'')
+      :`<div class="reply-section">
+        <label>Reply (sent via email to ${c.Email||'user'})</label>
+        <textarea class="reply-textarea" id="reply_${i}" rows="3" placeholder="Type reply...">${prevReply}</textarea>
+        <div class="reply-actions">
+          <button class="btn-reply-send" onclick="sendReply(${c._row},'${(c.Email||'').replace(/'/g,"\\'")}','${(c.Name||'').replace(/'/g,"\\'")}',${i},'Closed')">📧 Send & Close</button>
+          <button class="btn-reply-send" onclick="sendReply(${c._row},'${(c.Email||'').replace(/'/g,"\\'")}','${(c.Name||'').replace(/'/g,"\\'")}',${i},'In Progress')" style="background:linear-gradient(135deg,#f59e0b,#d97706)">🔄 Reply & Keep Open</button>
+        </div>
+       </div>`;
     return `<div class="complaint-card">
       <div class="complaint-header">
         <div class="complaint-person">
-          <h4>${c.Name||"—"} <span style="color:var(--text-dim); font-weight:400; font-size:13px">from ${c.Village||"—"}</span></h4>
+          <h4>${c.Name||"—"} <span style="color:var(--text-dim);font-weight:400;font-size:12px">from ${c.Village||"—"}</span></h4>
           <p>📱 ${c.Phone||"—"} &nbsp;|&nbsp; ✉️ ${c.Email||"—"} &nbsp;|&nbsp; 📅 ${c.Date||""} ${c.Time||""}</p>
         </div>
-        <div class="complaint-meta">
+        <div style="display:flex;gap:6px;align-items:center">
           <span class="badge ${stClass}">${st}</span>
-          ${c.Attachment && c.Attachment !== "None" ? '<span class="badge" style="background:rgba(245,158,11,0.12); color:#fcd34d; border:1px solid rgba(245,158,11,0.3)">📎 Attached</span>' : ""}
+          ${(c.Attachment&&c.Attachment!=="None")?'<span class="badge" style="background:rgba(245,158,11,0.12);color:#fcd34d;border:1px solid rgba(245,158,11,0.3)">📎</span>':""}
         </div>
       </div>
       <div class="complaint-text">${c.Complaint||"—"}</div>
-      ${existingReply ? `<div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:12px; margin-bottom:12px; font-size:13px; color:#6ee7b7;"><strong>Previous reply:</strong> ${existingReply}</div>` : ""}
-      <div class="reply-section">
-        <label>Admin Reply (sent via Email to ${c.Email||"user"})</label>
-        <textarea class="reply-textarea" id="reply_${i}" rows="3" placeholder="Type your reply...">${existingReply}</textarea>
-        <div class="reply-actions">
-          <button class="btn-reply-send" onclick="sendReply(${c._row},'${(c.Email||"").replace(/'/g,"\\'")}','${(c.Name||"").replace(/'/g,"\\'")}',${i},'Closed')">
-            📧 Send Reply & Close
-          </button>
-          <button class="btn-reply-send" onclick="sendReply(${c._row},'${(c.Email||"").replace(/'/g,"\\'")}','${(c.Name||"").replace(/'/g,"\\'")}',${i},'In Progress')" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-            🔄 Reply & Keep Open
-          </button>
-        </div>
-      </div>
+      ${replySection}
     </div>`;
-  }).join("");
+  }).join('');
 }
+function filterComplaints(){renderComplaints(allComplaints);}
 
-function filterComplaints() {
-  renderComplaints(allComplaints);
-}
-
-function sendReply(row, email, name, idx, status) {
-  const reply = document.getElementById("reply_" + idx)?.value?.trim();
-  if (!reply) { toast("Please type a reply first.", "error"); return; }
-  const params = new URLSearchParams({
-    action: "updateComplaint",
-    row, email, name, reply, status,
-    adminUser, adminToken: token, adminExpiry: expiry
-  });
-  fetch(APP_CONFIG.SCRIPT_URL, { method:"POST", body:params })
-    .then(r => r.json())
-    .then(res => {
-      if (res.result === "Updated") {
-        toast("Reply sent to " + email + " via email!", "success");
-        loadComplaints();
-        logAdminActivity("ReplyComplaint", "Replied to " + name);
-      } else {
-        toast("Failed to send reply.", "error");
-      }
-    })
-    .catch(() => toast("Connection error.", "error"));
-}
-
-function logAdminActivity(action, detail) {
-  const params = new URLSearchParams({ action:"logActivity", adminUser, detail, adminToken:token, adminExpiry:expiry });
-  fetch(APP_CONFIG.SCRIPT_URL, { method:"POST", body:params }).catch(()=>{});
+function sendReply(row,email,name,idx,status){
+  if(isReadOnly){toast("View Only: Cannot reply","error");return;}
+  const reply=document.getElementById("reply_"+idx)?.value?.trim();
+  if(!reply){toast("Please type a reply first","error");return;}
+  const params=new URLSearchParams({action:"updateComplaint",row,email,name,reply,status,adminUser,adminToken:token,adminExpiry:expiry});
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:params}).then(r=>r.json()).then(res=>{
+    if(res.result==="Updated"){toast("Reply sent to "+email+"!","success");loadComplaints();loadActivity();}
+    else toast("Failed to send reply","error");
+  }).catch(()=>toast("Connection error","error"));
 }
 
 // ---- TABS ----
-function switchTab(name) {
-  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("tab-" + name).classList.add("active");
-  event.target.classList.add("active");
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  btn.classList.add("active");
 }
+
+// ---- THEME ----
+function toggleTheme(){
+  const curr=document.documentElement.getAttribute('data-theme')||'dark';
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('theme',next);
+  document.getElementById('themeToggle').textContent=next==='dark'?'☀️ Light':'🌙 Dark';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const t=document.documentElement.getAttribute('data-theme')||'dark';
+  document.getElementById('themeToggle').textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+});
 
 // ---- TOAST ----
-function toast(msg, type="info") {
-  const tc = document.getElementById("toastContainer");
-  const t = document.createElement("div");
-  t.className = "toast " + type;
-  t.textContent = msg;
+function toast(msg,type="info"){
+  const tc=document.getElementById("toastContainer");
+  const t=document.createElement("div");
+  t.className="toast "+type;t.textContent=msg;
   tc.appendChild(t);
-  setTimeout(() => { t.classList.add("fade-out"); setTimeout(() => t.remove(), 300); }, 3500);
+  setTimeout(()=>{t.classList.add("fade-out");setTimeout(()=>t.remove(),300);},3200);
 }
-
-function handleAuthError(err) {
-  if (err.includes("expired") || err.includes("Unauthorized")) {
-    toast("Session expired. Redirecting...", "error");
-    setTimeout(() => { sessionStorage.clear(); location.href = "admin-login.html"; }, 1500);
+function handleAuthError(err){
+  if(err&&(err.includes("expired")||err.includes("Unauthorized"))){
+    toast("Session expired. Redirecting...","error");
+    setTimeout(()=>{sessionStorage.clear();location.href="admin-login.html";},1500);
   }
 }
 
 // ---- INIT ----
 loadAll();
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js")
-      .then(r => console.log("[SW] Registered:", r.scope))
-      .catch(e => console.log("[SW] Error:", e));
-  });
-}
-</script>
+<script>if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));</script>
 </body>
 </html>
