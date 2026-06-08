@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy – Event Pay Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0f1f3d;
+      --teal:    #0e7490;
+      --accent:  #22d3ee;
+      --gold:    #f59e0b;
+      --bg:      #f8fafc;
+      --card:    #ffffff;
+      --text:    #1e293b;
+      --muted:   #64748b;
+      --border:  #e2e8f0;
+      --radius:  14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: auto;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--teal), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .logo-text span { color: var(--accent); }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      padding: 4px 12px;
+      border-radius: 50px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(150deg, var(--navy) 0%, #0c3059 50%, var(--teal) 100%);
+      padding: 72px 28px 80px;
+      text-align: center;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(34,211,238,0.12) 0%, transparent 70%);
+      top: -150px; right: -100px;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
+      bottom: -50px; left: -50px;
+      pointer-events: none;
+    }
+    .hero-chip {
+      display: inline-block;
+      background: rgba(34,211,238,0.15);
+      border: 1px solid rgba(34,211,238,0.3);
+      color: var(--accent);
+      font-size: 0.75rem;
+      padding: 5px 16px;
+      border-radius: 50px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 580px;
+      margin: 0 auto 28px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      font-size: 0.8rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hero-meta-item strong { color: #94a3b8; }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 28px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+      .toc { display: none; }
+    }
+
+    /* ── TABLE OF CONTENTS ── */
+    .toc {
+      position: sticky;
+      top: 76px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .toc h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .toc ul { list-style: none; }
+    .toc ul li { margin-bottom: 4px; }
+    .toc ul li a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.83rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: block;
+      transition: all 0.2s;
+      font-weight: 400;
+    }
+    .toc ul li a:hover {
+      background: #eff6ff;
+      color: var(--teal);
+      font-weight: 500;
+    }
+
+    /* ── CONTENT ── */
+    .content section {
+      margin-bottom: 48px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      transition: box-shadow 0.3s;
+    }
+    .content section:hover {
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .section-num {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--navy), var(--teal));
+      border-radius: 50%;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-icon {
+      font-size: 1.4rem;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--navy);
+      font-weight: 700;
+    }
+    p { color: var(--text); margin-bottom: 14px; font-size: 0.95rem; }
+    p:last-child { margin-bottom: 0; }
+
+    ul.policy-list {
+      list-style: none;
+      margin: 14px 0;
+    }
+    ul.policy-list li {
+      padding: 8px 0 8px 22px;
+      font-size: 0.93rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    ul.policy-list li:last-child { border-bottom: none; }
+    ul.policy-list li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, #eff6ff, #ecfeff);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--teal);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 18px 0;
+      font-size: 0.9rem;
+      color: #0c4a6e;
+    }
+    .highlight-box strong { display: block; margin-bottom: 4px; color: var(--navy); }
+
+    .warning-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 4px solid var(--gold);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 18px 0;
+      font-size: 0.9rem;
+      color: #78350f;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.88rem;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .data-table th {
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ── CONTACT CARD ── */
+    .contact-card {
+      background: linear-gradient(135deg, var(--navy), #0c3059);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .contact-card h2 {
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 12px;
+    }
+    .contact-card p { color: #94a3b8; margin-bottom: 24px; }
+    .contact-email {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .contact-email:hover {
+      background: rgba(34,211,238,0.15);
+      border-color: var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy);
+      color: #64748b;
+      text-align: center;
+      padding: 28px;
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .content section { padding: 24px 20px; }
+      .hero { padding: 48px 20px 56px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-icon">💳</div>
+    <div class="logo-text">Event<span>Pay</span> Management</div>
+    <div class="header-badge">Privacy Policy</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-chip">Legal &amp; Transparency</div>
+  <h1>Your Privacy <span>Matters</span> to Us</h1>
+  <p>We are committed to protecting your personal information and being transparent about how we collect, use, and safeguard your data.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">📅 <strong>Effective Date:</strong> June 8, 2026</div>
+    <div class="hero-meta-item">🔄 <strong>Last Updated:</strong> June 8, 2026</div>
+    <div class="hero-meta-item">📦 <strong>App:</strong> Event Pay Management</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="container">
+
+  <!-- TABLE OF CONTENTS -->
+  <aside class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#s1">1. Information We Collect</a></li>
+      <li><a href="#s2">2. How We Use Your Data</a></li>
+      <li><a href="#s3">3. Payment Information</a></li>
+      <li><a href="#s4">4. Data Sharing</a></li>
+      <li><a href="#s5">5. Data Security</a></li>
+      <li><a href="#s6">6. Your Rights</a></li>
+      <li><a href="#s7">7. Cookies &amp; Tracking</a></li>
+      <li><a href="#s8">8. Children's Privacy</a></li>
+      <li><a href="#s9">9. Data Retention</a></li>
+      <li><a href="#s10">10. Changes to Policy</a></li>
+      <li><a href="#contact">Contact Us</a></li>
+    </ul>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <div class="highlight-box">
+      <strong>📋 Quick Summary</strong>
+      This Privacy Policy explains how <strong>Event Pay Management</strong> collects, uses, and protects your personal information when you use our mobile application. By using our app, you agree to the terms described below.
+    </div>
+
+    <!-- SECTION 1 -->
+    <section id="s1">
+      <div class="section-label">
+        <div class="section-num">1</div>
+        <span class="section-icon">📂</span>
+        <h2>Information We Collect</h2>
+      </div>
+      <p>We collect information necessary to provide you with our event payment management services. This includes:</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data Type</th>
+            <th>Details</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Personal Info</strong></td>
+            <td>Name, email address, phone number</td>
+            <td>Account creation & communication</td>
+          </tr>
+          <tr>
+            <td><strong>Event Data</strong></td>
+            <td>Event names, dates, participant lists</td>
+            <td>Organizing and managing events</td>
+          </tr>
+          <tr>
+            <td><strong>Payment Data</strong></td>
+            <td>Transaction amounts, payment status, contributor records</td>
+            <td>Processing contributions & tracking</td>
+          </tr>
+          <tr>
+            <td><strong>Device Info</strong></td>
+            <td>Device type, OS version, app version</td>
+            <td>App performance & bug fixing</td>
+          </tr>
+          <tr>
+            <td><strong>Usage Data</strong></td>
+            <td>App features used, session duration</td>
+            <td>Improving user experience</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="s2">
+      <div class="section-label">
+        <div class="section-num">2</div>
+        <span class="section-icon">⚙️</span>
+        <h2>How We Use Your Data</h2>
+      </div>
+      <p>We use the collected information for the following purposes:</p>
+      <ul class="policy-list">
+        <li>To create and manage your account on the Event Pay Management platform</li>
+        <li>To process event contributions and payment tracking between participants</li>
+        <li>To send you notifications about event payment status and updates</li>
+        <li>To generate payment reports and summaries for event organizers</li>
+        <li>To provide customer support and resolve technical issues</li>
+        <li>To improve the app's features, performance, and user experience</li>
+        <li>To comply with legal obligations and prevent fraudulent activity</li>
+        <li>To send important service announcements and updates</li>
+      </ul>
+      <div class="highlight-box">
+        <strong>✅ We do NOT</strong>
+        sell your personal data to third parties, use your data for unrelated advertising, or share your payment information without your explicit consent.
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="s3">
+      <div class="section-label">
+        <div class="section-num">3</div>
+        <span class="section-icon">💳</span>
+        <h2>Payment Information</h2>
+      </div>
+      <p>Event Pay Management handles financial contributions between event participants. Here is how we handle payment data:</p>
+      <ul class="policy-list">
+        <li>We record contribution amounts, payer names, and payment status for event accounting purposes</li>
+        <li>Full payment card numbers are <strong>never stored</strong> on our servers — any card processing is handled by certified third-party payment gateways</li>
+        <li>Payment history is retained to provide accurate records for event organizers and contributors</li>
+        <li>Transaction data may be used to resolve disputes or generate financial reports for events</li>
+      </ul>
+      <div class="warning-box">
+        ⚠️ <strong>Important:</strong> If you use third-party payment services (UPI, bank transfers, etc.) through our app, those services have their own privacy policies which we encourage you to review.
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="s4">
+      <div class="section-label">
+        <div class="section-num">4</div>
+        <span class="section-icon">🤝</span>
+        <h2>Data Sharing &amp; Disclosure</h2>
+      </div>
+      <p>We do not sell, trade, or rent your personal information to third parties. We may share data only in these circumstances:</p>
+      <ul class="policy-list">
+        <li><strong>Within your Event Group:</strong> Event organizers can view the contribution status and names of participants in their managed events</li>
+        <li><strong>Service Providers:</strong> We may share data with trusted technical partners (cloud hosting, analytics) who are contractually bound to protect your data</li>
+        <li><strong>Legal Requirements:</strong> We may disclose information if required by law, court order, or government authority</li>
+        <li><strong>Business Transfers:</strong> In the event of a merger or acquisition, your data may be transferred as part of the business assets</li>
+        <li><strong>With Your Consent:</strong> Any other sharing will only occur with your explicit permission</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="s5">
+      <div class="section-label">
+        <div class="section-num">5</div>
+        <span class="section-icon">🔒</span>
+        <h2>Data Security</h2>
+      </div>
+      <p>We take the security of your personal and financial data seriously and implement industry-standard measures:</p>
+      <ul class="policy-list">
+        <li>All data transmission is encrypted using HTTPS/TLS protocols</li>
+        <li>Passwords are hashed and never stored in plaintext</li>
+        <li>Access to user data is restricted to authorized personnel only</li>
+        <li>Regular security audits and vulnerability assessments are conducted</li>
+        <li>We use secure cloud infrastructure with data backups and disaster recovery protocols</li>
+      </ul>
+      <div class="highlight-box">
+        <strong>🛡️ Security Notice</strong>
+        While we implement strong security practices, no method of data transmission over the internet is 100% secure. We encourage you to use strong passwords and keep your login credentials confidential.
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section id="s6">
+      <div class="section-label">
+        <div class="section-num">6</div>
+        <span class="section-icon">✋</span>
+        <h2>Your Rights</h2>
+      </div>
+      <p>You have the following rights regarding your personal data:</p>
+      <ul class="policy-list">
+        <li><strong>Access:</strong> You can request a copy of all personal data we hold about you</li>
+        <li><strong>Correction:</strong> You can update or correct inaccurate information in your account settings</li>
+        <li><strong>Deletion:</strong> You can request deletion of your account and associated personal data</li>
+        <li><strong>Data Portability:</strong> You can request your data in a portable format (CSV/JSON)</li>
+        <li><strong>Opt-Out:</strong> You can opt out of non-essential communications at any time</li>
+        <li><strong>Withdrawal of Consent:</strong> You may withdraw consent for data processing, though this may affect app functionality</li>
+      </ul>
+      <p>To exercise any of these rights, please contact us at the email address provided below. We will respond within <strong>30 days</strong>.</p>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section id="s7">
+      <div class="section-label">
+        <div class="section-num">7</div>
+        <span class="section-icon">🍪</span>
+        <h2>Cookies &amp; Tracking</h2>
+      </div>
+      <p>Our app and associated web services may use the following tracking technologies:</p>
+      <ul class="policy-list">
+        <li><strong>Session Cookies:</strong> Used to keep you logged in during your session</li>
+        <li><strong>Local Storage:</strong> Used to save your preferences and settings on your device</li>
+        <li><strong>Analytics:</strong> We may use anonymized analytics to understand app usage patterns (no personally identifiable data is shared)</li>
+      </ul>
+      <p>We do <strong>not</strong> use advertising cookies or cross-site tracking. You can clear cookies and local storage through your browser or device settings at any time.</p>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section id="s8">
+      <div class="section-label">
+        <div class="section-num">8</div>
+        <span class="section-icon">👶</span>
+        <h2>Children's Privacy</h2>
+      </div>
+      <p>Event Pay Management is <strong>not directed at children under the age of 13</strong>. We do not knowingly collect personal information from children under 13 years of age.</p>
+      <p>If we become aware that a child under 13 has provided us with personal information, we will take immediate steps to delete such information from our servers. If you believe a child has provided us with their data, please contact us immediately.</p>
+      <div class="warning-box">
+        ⚠️ This app is intended for use by adults and responsible individuals managing event finances. Users must be at least 13 years old to create an account.
+      </div>
+    </section>
+
+    <!-- SECTION 9 -->
+    <section id="s9">
+      <div class="section-label">
+        <div class="section-num">9</div>
+        <span class="section-icon">🗓️</span>
+        <h2>Data Retention</h2>
+      </div>
+      <p>We retain your personal data for as long as necessary to provide our services or as required by law:</p>
+      <ul class="policy-list">
+        <li><strong>Account data</strong> is retained while your account is active</li>
+        <li><strong>Event &amp; payment records</strong> are kept for up to <strong>3 years</strong> for accounting and dispute resolution purposes</li>
+        <li><strong>Deleted accounts:</strong> Data is permanently removed within <strong>90 days</strong> of account deletion request</li>
+        <li><strong>Backup copies</strong> may persist for up to 30 additional days in encrypted backup systems</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 10 -->
+    <section id="s10">
+      <div class="section-label">
+        <div class="section-num">10</div>
+        <span class="section-icon">📝</span>
+        <h2>Changes to This Policy</h2>
+      </div>
+      <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. When we make significant changes, we will:</p>
+      <ul class="policy-list">
+        <li>Update the "Last Updated" date at the top of this page</li>
+        <li>Notify active users through an in-app notification or email</li>
+        <li>Post a prominent notice in the app for at least 7 days</li>
+      </ul>
+      <p>Your continued use of the Event Pay Management app after changes are posted constitutes your acceptance of the revised policy.</p>
+    </section>
+
+    <!-- CONTACT -->
+    <div class="contact-card" id="contact">
+      <h2>📬 Contact Us</h2>
+      <p>Have questions about this Privacy Policy or your personal data? We're here to help.</p>
+      <a class="contact-email" href="mailto:admin@eventpay.app">
+        ✉️ admin@eventpay.app
+      </a>
+      <p style="margin-top:20px; font-size:0.82rem; color:#475569;">
+        <strong style="color:#94a3b8;">Developer:</strong> EventPay Admin &nbsp;|&nbsp;
+        <strong style="color:#94a3b8;">Organization:</strong> EventPay - Event Contribution Manager
+      </p>
+    </div>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Event Pay Management. All rights reserved.</p>
+  <p style="margin-top:8px;">
+    <a href="index.html">Home</a> &nbsp;·&nbsp;
+    <a href="privacy-policy.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="mailto:admin@eventpay.app">Contact</a>
+  </p>
+</footer>
+
+</body>
+</html>
