@@ -421,7 +421,7 @@ function loadAll(){loadPayments();loadComplaints();loadActivity();if(isSuperAdmi
 
 function loadPayments(){
   const p=new URLSearchParams({action:"getPayments",...hdrs()});
-  fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     if(d.error){handleAuthErr(d.error);toast("⚠️ "+d.error,"error");return;}
     allPayments=d.payments||[];
     window._allPayments=allPayments;
@@ -434,7 +434,7 @@ function loadPayments(){
 
 function loadComplaints(){
   const p=new URLSearchParams({action:"getComplaints",...hdrs()});
-  fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     if(d.error)return;
     allComplaints=d.complaints||[];
     filterComplaints();
@@ -474,7 +474,7 @@ function addVillage(){
 
 function loadUTRBlacklist(){
   const p=new URLSearchParams({action:"getUTRBlacklist",...hdrs()});
-  fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     const list=document.getElementById("utrList");
     const ul=d.list||[];
     list.innerHTML=ul.length?ul.map(u=>`<div class="utr-item"><div><div style="font-weight:700;font-family:'JetBrains Mono',monospace">${u.utr}</div><div class="utr-reason">${u.reason||""} • ${u.addedAt||""}</div></div></div>`).join("")
@@ -804,7 +804,7 @@ function saveSettings(){
 // ============================================================
 function loadAudit(){
   const p=new URLSearchParams({action:"getAuditLog",limit:"100",...hdrs()});
-  fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     allAudit=d.logs||[];
     filterAudit();
   }).catch(()=>{});
@@ -837,7 +837,7 @@ let sheetEdits={}, sheetHeaders=[], sheetOriginalData=[];
 
 function initSheetEditor(){
   const p=new URLSearchParams({action:"getSheetsList",...hdrs()});
-  fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
+  fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     const sel=document.getElementById("sheetSelect");
     (d.sheets||[]).forEach(s=>{sel.innerHTML+=`<option value="${s}">${s}</option>`;});
   }).catch(()=>{});
