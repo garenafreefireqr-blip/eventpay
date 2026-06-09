@@ -1,5 +1,5 @@
 const APP_CONFIG = {
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzvgfN2UJ8v1sTFXmBMgFCxf8NzEOu9-VLueR9TjcbOwkg7Ghb2wYz4zHhAbw6GMV7D8g/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwUbQf4-MhVkjQzbCGUY0kAaNXlzB5nI6CZzBRH2zLI7XVworB6V0EB8WdarNZeLhRGAA/exec",
   UPI_ID: "9014844036@superyes",
   EVENT_NAME: "Wedding of ram & Sita",
   ORG_NAME: "Event Organisation",
