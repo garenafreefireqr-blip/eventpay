@@ -547,7 +547,15 @@ function filterPayments(){
   const stF=document.getElementById("pStatus")?.value||"";
   const rlF=document.getElementById("pRisk")?.value||"";
   let data=allPayments.filter(p=>{
-    const match=!q||[p.Name,p.Village,p.Phone,p.UTR,p.RefID,""+p["Full Name"],""+p["Phone number"]].some(v=>(v||"").toLowerCase().includes(q));
+  const match = !q || [
+  p.Name,
+  p.Village,
+  p.Phone,
+  p.UTR,
+  p.RefID,
+  p["Full Name"],
+  p["Phone number"]
+].some(v => String(v || "").toLowerCase().includes(q));
     const stMatch=!stF||(p.Status||"").trim()===stF;
     const rlMatch=!rlF||(p.RiskLevel||"").trim()===rlF;
     return match&&stMatch&&rlMatch;
@@ -574,7 +582,7 @@ function buildTable(data){
       :`<div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn-sm btn-ver" onclick="markSt('${p.RefID}',${p._row},'Verified')">✓</button>
           <button class="btn-sm btn-rej" onclick="markSt('${p.RefID}',${p._row},'Not Verified')">✗</button>
-          <button class="btn-sm btn-blk" onclick="blkUTR('${(String(p.UTR || "")||"").replace(/'/g,"\\'")}')">🚫</button>
+          <button class="btn-sm btn-blk" onclick="blkUTR('${String(p.UTR || "").replace(/'/g,"\\'")}')">🚫</button>
         </div>`;
     const pubBtn=isReadOnly?`<span class="badge ${isPublic?'badge-verified':'badge-closed'}">${isPublic?'Show':'Hide'}</span>`
       :`<button class="${isPublic?'btn-pub-yes':'btn-pub-no'}" onclick="togglePub('${p.RefID}',${p._row},${!isPublic})">${isPublic?'👁️ Show':'🚫 Hide'}</button>`;
