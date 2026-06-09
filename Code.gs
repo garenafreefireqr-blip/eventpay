@@ -507,6 +507,7 @@ function insertComplaint(params) {
     try {
       const s=getSettings();
       const folderID=extractFolderID(s.COMPLAINT_UPLOAD_FOLDER_ID)||"1nMx6KmUbp0CZCmK5FDrXzvyiuqiOhdKH";
+      // DriveApp requires drive scope — ensure script has 'https://www.googleapis.com/auth/drive' in appsscript.json
       const folder=DriveApp.getFolderById(folderID);
       const decoded=Utilities.base64Decode(params.filedata);
       const blob=Utilities.newBlob(decoded, params.filetype||"application/octet-stream", params.filename);
@@ -514,7 +515,11 @@ function insertComplaint(params) {
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       fileUrl="https://drive.google.com/file/d/"+file.getId()+"/view";
       fileStatus="Attached";
-    } catch(e){ fileUrl="Error: "+e.message; fileStatus="Error"; }
+    } catch(e){
+      fileUrl="Error: "+e.message;
+      fileStatus="Error";
+      // Don't block complaint submission on file error
+    }
   }
 
   // Generate ComplaintID

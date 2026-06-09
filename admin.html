@@ -77,6 +77,11 @@ tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:rgba(99,102,241,0.04);}
 tbody td{padding:10px 10px;vertical-align:middle;}
+/* Column-specific widths */
+tbody td:nth-child(4){min-width:120px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+tbody td:nth-child(5){min-width:90px;}
+tbody td:nth-child(6){min-width:105px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+tbody td:nth-child(8){min-width:110px;font-family:'JetBrains Mono',monospace;font-size:11px;}
 .td-m{font-family:'JetBrains Mono',monospace;font-size:10px;}
 .td-amt{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);}
 .tbl-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 0;flex-wrap:wrap;gap:8px;}
@@ -122,12 +127,15 @@ tbody td{padding:10px 10px;vertical-align:middle;}
 /* SETTINGS PANEL */
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
 .settings-section h3{font-size:13px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.setting-row{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
 .setting-row:last-child{border-bottom:none;}
-.setting-key{font-size:13px;font-weight:600;flex:1;min-width:140px;}
+.setting-key{font-size:13px;font-weight:600;flex:1;min-width:140px;padding-top:6px;}
 .setting-desc{font-size:11px;color:var(--text-muted);margin-top:2px;}
-.setting-input{padding:8px 12px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;width:220px;transition:all 0.2s;}
+.setting-input{padding:8px 12px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;width:320px;min-width:200px;max-width:100%;transition:all 0.2s;box-sizing:border-box;}
 .setting-input:focus{outline:none;border-color:var(--accent);}
+.setting-textarea{padding:8px 12px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;width:320px;min-width:200px;max-width:100%;min-height:72px;resize:vertical;transition:all 0.2s;box-sizing:border-box;line-height:1.5;}
+.setting-textarea:focus{outline:none;border-color:var(--accent);}
+@media(max-width:600px){.setting-input,.setting-textarea{width:100%;}}
 /* Toggle switch */
 .toggle-wrap{display:flex;align-items:center;gap:8px;}
 .toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
@@ -414,11 +422,14 @@ function loadAll(){loadPayments();loadComplaints();loadActivity();if(isSuperAdmi
 function loadPayments(){
   const p=new URLSearchParams({action:"getPayments",...hdrs()});
   fetch(APP_CONFIG.SCRIPT_URL+"?"+p).then(r=>r.json()).then(d=>{
-    if(d.error){handleAuthErr(d.error);return;}
+    if(d.error){handleAuthErr(d.error);toast("⚠️ "+d.error,"error");return;}
     allPayments=d.payments||[];
     window._allPayments=allPayments;
     filterPayments();updateAnalytics(allPayments);
-  }).catch(()=>toast("Failed to load payments","error"));
+  }).catch(e=>{
+    toast("Failed to load payments — check Apps Script deployment & permissions","error");
+    document.getElementById("paymentsBody").innerHTML='<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--danger)">⚠️ Failed to load payments.<br><small>Ensure Apps Script is deployed as "Anyone" and re-authorize with Drive scope.</small></td></tr>';
+  });
 }
 
 function loadComplaints(){
@@ -706,6 +717,26 @@ function renderSettingsPanel(s){
   const media_keys=["INVITATION_CARD_DRIVE_LINK","EVENT_GALLERY_FOLDER_ID","COMPLAINT_UPLOAD_FOLDER_ID"];
   const fraud_keys=["FRAUD_THRESHOLD_HIGH","FRAUD_THRESHOLD_MEDIUM"];
 
+  // Keys that need textarea (long content)
+  const textareaKeys=["VenueAddress","VenueMapLink","INVITATION_CARD_DRIVE_LINK","EVENT_GALLERY_FOLDER_ID","COMPLAINT_UPLOAD_FOLDER_ID"];
+  // Keys that are dates stored as ISO — show a friendly label + the raw value editable
+  const dateKeys=["EventDate"];
+  const timeKeys=["EventTime"];
+
+  function formatISO(val,type){
+    try{
+      const d=new Date(val);
+      if(isNaN(d.getTime()))return val;
+      if(type==="date") return d.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
+      if(type==="time"){
+        // 1899-12-30 epoch means stored as time-only
+        const h=d.getHours(), m=d.getMinutes(), ampm=h>=12?"PM":"AM";
+        return ((h%12)||12)+":"+(m<10?"0"+m:m)+" "+ampm;
+      }
+    }catch(e){}
+    return val;
+  }
+
   function makeSection(title,keys){
     const rows=keys.map(k=>{
       const val=s[k]!==undefined?s[k]:"";
@@ -718,15 +749,23 @@ function renderSettingsPanel(s){
           <span class="toggle-label" id="sl_${k}">${checked?"ACTIVE":"DISABLED"}</span>
         </div>
       </div>`;
+      const displayLabel = dateKeys.includes(k) ? `<div style="font-size:11px;color:var(--accent);margin-bottom:4px">📅 Parsed: ${formatISO(val,"date")}</div>` :
+                           timeKeys.includes(k) ? `<div style="font-size:11px;color:var(--accent);margin-bottom:4px">🕐 Parsed: ${formatISO(val,"time")}</div>` : "";
+      const safeVal=String(val).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      if(textareaKeys.includes(k)){
+        return `<div class="setting-row">
+          <div><div class="setting-key">${k}</div></div>
+          <div style="flex:1;max-width:420px">${displayLabel}<textarea class="setting-textarea" id="s_${k}" rows="3" oninput="markSettingChanged()">${String(val).replace(/</g,'&lt;')}</textarea></div>
+        </div>`;
+      }
       return `<div class="setting-row">
-        <div><div class="setting-key">${k}</div></div>
-        <input class="setting-input" type="text" id="s_${k}" value="${String(val).replace(/"/g,'&quot;')}" oninput="markSettingChanged()">
+        <div><div class="setting-key">${k}</div>${displayLabel}</div>
+        <input class="setting-input" type="text" id="s_${k}" value="${safeVal}" oninput="markSettingChanged()">
       </div>`;
     }).join('');
     return `<div class="settings-section"><h3>${title}</h3>${rows}</div>`;
   }
 
-  // Watch toggles for label update
   panel.innerHTML=makeSection("🔍 Visibility Controls",vis_keys)+
     makeSection("🎉 Event Details",event_keys)+
     makeSection("📸 Media & Links",media_keys)+
@@ -821,13 +860,21 @@ function loadSheetData(){
 
 function renderSheetEditor(data){
   const wrap=document.getElementById("sheetEditorWrap");
+  if(!data||data.length<=1){
+    wrap.innerHTML='<div class="empty-state"><div class="e-icon">📭</div><p>No data rows. Use "+ Add Row" to add one.</p></div>';
+    return;
+  }
   const maxCols=Math.max(...data.map(r=>r.length),1);
   const hRow=`<tr><th>#</th>${Array.from({length:maxCols},(_,j)=>`<th>${data[0]?data[0][j]||"Col "+(j+1):"Col "+(j+1)}</th>`).join('')}<th>Del</th></tr>`;
   const rows=data.slice(1).map((r,ri)=>{
     const rowNum=ri+2;
-    const cells=Array.from({length:maxCols},(_,ci)=>
-      `<td><input value="${String(r[ci]||'').replace(/"/g,'&quot;')}" data-row="${rowNum}" data-col="${ci+1}" oninput="onCellEdit(this,${rowNum},${ci+1})"></td>`
-    ).join('');
+    const cells=Array.from({length:maxCols},(_,ci)=>{
+      let cellVal=String(r[ci]||'');
+      // Show a friendly preview for ISO date-like values
+      const isoMatch=cellVal.match(/^(\d{4}-\d{2}-\d{2})T/);
+      const hint=isoMatch?`<div style="font-size:9px;color:var(--accent);padding:1px 9px">${new Date(cellVal).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>`:"";
+      return `<td style="vertical-align:top">${hint}<input value="${cellVal.replace(/"/g,'&quot;')}" data-row="${rowNum}" data-col="${ci+1}" oninput="onCellEdit(this,${rowNum},${ci+1})" style="min-width:${ci===0?110:90}px"></td>`;
+    }).join('');
     return `<tr><td class="row-num">${rowNum}</td>${cells}<td><button class="btn-sm btn-rej" onclick="deleteRow(${rowNum})">🗑</button></td></tr>`;
   }).join('');
   wrap.innerHTML=`<table class="sheet-tbl"><thead>${hRow}</thead><tbody>${rows}</tbody></table>`;
@@ -865,8 +912,17 @@ function addNewRow(){
   const rowData=Array(cols).fill("");
   const p=new URLSearchParams({action:"addSheetRow",sheetName:sheet,rowData:JSON.stringify(rowData),...hdrs()});
   fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
-    if(d.result==="Added"){toast("Row added","success");loadSheetData();}
-  }).catch(()=>toast("Error","error"));
+    if(d.result==="Added"){
+      toast("Row added","success");
+      loadSheetData();
+      setTimeout(()=>{
+        const w=document.getElementById("sheetEditorWrap");
+        if(w) w.scrollTop=w.scrollHeight;
+      },600);
+    } else {
+      toast("Error: "+(d.error||"Could not add row"),"error");
+    }
+  }).catch(()=>toast("Connection error","error"));
 }
 
 function deleteRow(row){
