@@ -652,11 +652,13 @@ function getGalleryImages() {
       const f=files.next();
       if(f.getMimeType().startsWith("image/")){
         try{ f.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW); }catch(e){}
-        images.push({
-          id:f.getId(), name:f.getName(),
-          url:"https://drive.google.com/uc?id="+f.getId(),
-          thumb:"https://drive.google.com/thumbnail?id="+f.getId()+"&sz=w400"
-        });
+images.push({
+ id:f.getId(),
+ name:f.getName(),
+ url:"https://drive.google.com/uc?id="+f.getId(),
+ thumb:"https://drive.google.com/thumbnail?id="+f.getId()+"&sz=w400",
+ download:"https://drive.google.com/uc?export=download&id="+f.getId()
+});
       }
     }
     return {images};
