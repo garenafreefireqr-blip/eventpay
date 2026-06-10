@@ -308,56 +308,55 @@ function loadGallery() {
 function renderGallery() {
   const grid = document.getElementById("galleryGrid");
   const toShow = allImages.slice(0, displayCount);
-grid.innerHTML = toShow.map((img, i)=>`
-<div class="gallery-item">
 
-  <div class="gallery-actions">
+  grid.innerHTML = toShow.map((img, i) => `
+    <div class="gallery-item">
 
-    <button
-      class="gallery-action-btn"
-      onclick="event.stopPropagation();openLightbox(${i})">
-      👁 View
-    </button>
+      <div class="gallery-actions">
+        <button
+          class="gallery-action-btn"
+          onclick="event.stopPropagation();openLightbox(${i})">
+          👁 View
+        </button>
 
-    <a
-      href="${img.download || img.url}"
-      download
-      class="gallery-action-btn"
-      onclick="event.stopPropagation()"
-      style="text-decoration:none">
-      ⬇ Download
-    </a>
+        <a
+          href="${img.download || img.url}"
+          download
+          class="gallery-action-btn"
+          onclick="event.stopPropagation()"
+          style="text-decoration:none">
+          ⬇ Download
+        </a>
+      </div>
 
-  </div>
+      <img
+        src="${img.thumb || img.url}"
+        alt="${img.name || ''}"
+        loading="lazy"
+        onclick="openLightbox(${i})"
+        onerror="this.src='${img.url}'">
 
-  <img
-    src="${img.thumb || img.url}"
-    alt="${img.name || ''}"
-    loading="lazy"
-    onclick="openLightbox(${i})">
+      <div class="overlay">
+        <div class="overlay-icon">🔍</div>
+      </div>
 
-  <div class="overlay">
-    <div class="overlay-icon">🔍</div>
-  </div>
+      <div class="img-name">
+        ${img.name || ''}
+      </div>
 
-  <div class="img-name">
-    ${img.name || ''}
-  </div>
+    </div>
+  `).join('');
 
-</div>
-`).join('');" style="animation-delay:${Math.min(i*0.03,0.5)}s">
-      <img src="${img.thumb||img.url}" alt="${img.name||''}"
-           loading="lazy" onerror="this.src='${img.url}'">
-      <div class="overlay"><div class="overlay-icon">🔍</div></div>
-      <div class="img-name">${img.name||''}</div>
-    </div>`).join('');
   grid.style.display = "grid";
 
   const btn = document.getElementById("loadMoreBtn");
   btn.style.display = allImages.length > displayCount ? "block" : "none";
-  btn.textContent = "Load More Photos ("+(allImages.length-displayCount)+" remaining)";
-}
 
+  btn.textContent =
+    "Load More Photos (" +
+    (allImages.length - displayCount) +
+    " remaining)";
+}
 function loadMore() {
   displayCount += 20;
   renderGallery();
