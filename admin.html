@@ -916,8 +916,10 @@ function cancelSheetEdits(){
 function addNewRow(){
   const sheet=document.getElementById("sheetSelect").value;
   if(!sheet){toast("Select a sheet","error");return;}
-  const cols=sheetHeaders.length||3;
-  const rowData=Array(cols).fill("");
+const cols=sheetHeaders.length||3;
+
+const rowData=
+Array(cols).fill("xxxxx");
   const p=new URLSearchParams({action:"addSheetRow",sheetName:sheet,rowData:JSON.stringify(rowData),...hdrs()});
   fetch(APP_CONFIG.SCRIPT_URL,{method:"POST",body:p}).then(r=>r.json()).then(d=>{
     if(d.result==="Added"){
