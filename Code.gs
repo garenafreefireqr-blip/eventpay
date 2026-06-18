@@ -1,5 +1,5 @@
 // ============================================================
-// CODE.GS v5 — EventPay — Exact Sheet Column Match
+// CODE.GS v6 — EventPay — Full Featured + Bug Fixes
 // ============================================================
 // SHEETS: Payments | AuditLog | Villages | ActivityLog |
 //         UTRBlacklist | Complaints | Settings | Admins
@@ -22,6 +22,7 @@ function handleAction(action, p, pd) {
     if (action === "getPublicVisibility")  return getPublicVisibility();
     if (action === "getPublicStats")       return getPublicStats();
     if (action === "getPublicPayments")    return getPublicPayments();
+    if (action === "getRecentTransactions")return getRecentTransactions();
     if (action === "checkStatus")          return checkStatus(p);
     if (action === "insertPayment")        return insertPayment(p);
     if (action === "insertComplaint")      return insertComplaint(p);
@@ -48,6 +49,7 @@ function handleAction(action, p, pd) {
     if (action === "updateSheetCell")      return updateSheetCell(p);
     if (action === "addSheetRow")          return addSheetRow(p);
     if (action === "deleteSheetRow")       return deleteSheetRow(p);
+    if (action === "undoActions")          return undoActions(p);
     return { error: "Unknown action: " + action };
   } catch(err) { return { error: err.message }; }
 }
@@ -108,7 +110,8 @@ function nowFormatted() {
   return {
     date: Utilities.formatDate(now, tz, "dd-MMM-yyyy"),
     time: Utilities.formatDate(now, tz, "hh:mm a"),
-    full: Utilities.formatDate(now, tz, "dd-MMM-yyyy hh:mm:ss")
+    full: Utilities.formatDate(now, tz, "dd-MMM-yyyy hh:mm:ss"),
+    iso: now.toISOString()
   };
 }
 
@@ -129,15 +132,21 @@ function getPublicVisibility() {
   const s = getSettings();
   const isActive = (key) => String(s[key]||"ACTIVE").toUpperCase().trim() === "ACTIVE";
   return {
-    showDonorList:       isActive("SHOW_DONOR_LIST"),
-    showStatistics:      isActive("SHOW_STATISTICS"),
-    showHomepageStats:   isActive("SHOW_HOMEPAGE_STATS"),
-    showHomepageDonors:  isActive("SHOW_HOMEPAGE_DONORS"),
-    showGallery:         isActive("SHOW_GALLERY"),
-    showInviteCard:      isActive("SHOW_INVITE_CARD"),
-    showPendingPayments: isActive("SHOW_PENDING_PAYMENTS"),
-    showVerifiedPayments:isActive("SHOW_VERIFIED_PAYMENTS"),
-    showRecentPayments:  isActive("SHOW_RECENT_PAYMENTS")
+    showDonorList:          isActive("SHOW_DONOR_LIST"),
+    showStatistics:         isActive("SHOW_STATISTICS"),
+    showHomepageStats:      isActive("SHOW_HOMEPAGE_STATS"),
+    showHomepageDonors:     isActive("SHOW_HOMEPAGE_DONORS"),
+    showGallery:            isActive("SHOW_GALLERY"),
+    showInviteCard:         isActive("SHOW_INVITE_CARD"),
+    showPendingPayments:    isActive("SHOW_PENDING_PAYMENTS"),
+    showVerifiedPayments:   isActive("SHOW_VERIFIED_PAYMENTS"),
+    showRecentPayments:     isActive("SHOW_RECENT_PAYMENTS"),
+    // Gallery sections
+    showEngagementGallery:  isActive("SHOW_ENGAGEMENT_GALLERY"),
+    showHaldiGallery:       isActive("SHOW_HALDI_GALLERY"),
+    showMarriageGallery:    isActive("SHOW_MARRIAGE_GALLERY"),
+    allowDownloadAll:       isActive("ALLOW_DOWNLOAD_ALL"),
+    allowSectionDownload:   isActive("ALLOW_SECTION_DOWNLOAD")
   };
 }
 
@@ -155,18 +164,20 @@ function updateSettings(params) {
         const oldVal = data[i][1];
         sheet.getRange(i+1, 2).setValue(updates[key]);
         logAudit({adminUser:params.adminUser, module:"Settings", action:"Update",
-          field:key, oldValue:oldVal, newValue:updates[key], reason:params.reason||""});
+          field:key, oldValue:String(oldVal), newValue:String(updates[key]), reason:params.reason||"",
+          row:i+1, column:2});
         found=true; break;
       }
     }
     if(!found) sheet.appendRow([key, updates[key]]);
   });
+  logActivity({adminUser:params.adminUser, module:"Settings", action:"SettingsUpdate",
+    detail:"Updated "+Object.keys(updates).length+" setting(s)"});
   return { result:"Saved" };
 }
 
 // ============================================================
 // ADMIN LOGIN
-// Admins sheet: Username(A) | Password(B) | Role(C) | AcessLevel(D) | Status(E) | Email(F) | CreatedAt(G) | LastLogin(H)
 // ============================================================
 function loginAdmin(params) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -182,15 +193,14 @@ function loginAdmin(params) {
       const timeout = parseInt(s.SessionTimeoutMinutes)||30;
       const expiry = new Date(Date.now()+timeout*60*1000).toISOString();
       const token  = Utilities.getUuid();
-      // Update LastLogin
       try{ sheet.getRange(i+1, 8).setValue(nowFormatted().full); }catch(e){}
-      logActivity({adminUser:params.username, action:"Login", detail:"Successful login"});
+      logActivity({adminUser:params.username, module:"Auth", action:"Login", detail:"Successful login"});
       logAudit({adminUser:params.username, module:"Auth", action:"Login",
         field:"session", oldValue:"", newValue:"active", reason:"Login"});
       return {
         success:true,
         role:        data[i][2]||"admin",
-        accessLevel: data[i][3]||"full",   // AcessLevel column
+        accessLevel: data[i][3]||"full",
         email:       data[i][5]||"",
         token, expiry
       };
@@ -203,7 +213,6 @@ function loginAdmin(params) {
 
 // ============================================================
 // UTR VALIDATION & FRAUD DETECTION
-// UTRBlacklist sheet: UTR(A) | AddedAt(B) | Reason(C)
 // ============================================================
 function isUTRBlacklisted(utr) {
   try {
@@ -249,15 +258,12 @@ function validateUTR(params) {
 
   let score=0; const flags=[];
 
-  // Check blacklist first
   if(isUTRBlacklisted(utr)) return { valid:false, risk:"HIGH", score:100, flags:["UTR is blacklisted"], block:true };
 
-  // Format checks
   if(!/^\d+$/.test(utr))    { score+=35; flags.push("Non-numeric characters"); }
   if(utr.length<10)          { score+=30; flags.push("Too short (min 10 digits)"); }
   if(utr.length>22)          { score+=15; flags.push("Too long (max 22 digits)"); }
 
-  // Pattern analysis
   if(/^(.)\1+$/.test(utr))  { score+=45; flags.push("All identical digits"); }
   const testVals=["123456789012","000000000000","111111111111","999999999999","123123123123"];
   if(testVals.includes(utr)) { score+=50; flags.push("Known test/fake value"); }
@@ -265,7 +271,6 @@ function validateUTR(params) {
   for(let i=1;i<Math.min(utr.length,8);i++) if(parseInt(utr[i])-parseInt(utr[i-1])!==1){isSeq=false;break;}
   if(isSeq&&utr.length>=6)  { score+=25; flags.push("Sequential digits"); }
 
-  // Check Payments sheet for duplicates & similarity
   try {
     const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet=ss.getSheetByName("Payments");
@@ -273,7 +278,6 @@ function validateUTR(params) {
     const col=getColMap(data[0]);
     const utrC=col["utr"]!==undefined?col["utr"]:7;
     const phoneC=col["phone number"]!==undefined?col["phone number"]:(col["phone"]!==undefined?col["phone"]:5);
-    const recentUTRs=[];
     for(let i=Math.max(1,data.length-300);i<data.length;i++){
       const eu=String(data[i][utrC]||'').trim();
       if(!eu) continue;
@@ -283,7 +287,6 @@ function validateUTR(params) {
         if(dist<=1){ score+=50; flags.push("Nearly identical to existing UTR"); }
         else if(dist<=2){ score+=25; flags.push("Very similar to existing UTR"); }
       }
-      // Same phone rapid submission
       if(params.phone&&String(data[i][phoneC]||'').trim()===String(params.phone).trim()) score+=20;
     }
   } catch(e){}
@@ -296,19 +299,26 @@ function validateUTR(params) {
 
 // ============================================================
 // PAYMENTS
-// Payments sheet: RefID(A) | Date(B) | Time(C) | Full Name(D) |
-//   Village(E) | Phone number(F) | Amount(G) | UTR(H) | Status(I) |
-//   FraudScore(J) | RiskLevel(K) | ReviewFlag(L) | ShowPublic(M) |
-//   Verified By(N) | VerifiedAt(O) | Notes(P)
 // ============================================================
 function insertPayment(params) {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet=ss.getSheetByName("Payments");
   const data=sheet.getDataRange().getValues();
   const col=getColMap(data[0]);
-  // Phone column: "phone number" in your sheet
   const phoneC=col["phone number"]!==undefined?col["phone number"]:(col["phone"]!==undefined?col["phone"]:5);
   const utrC=col["utr"]!==undefined?col["utr"]:7;
+
+  // MAX_AMOUNT validation (Issue #15)
+  const s=getSettings();
+  const maxAmt=parseFloat(s.MAX_AMOUNT)||0;
+  const minAmt=parseFloat(s.MIN_AMOUNT)||50;
+  const amt=Number(params.amount)||0;
+  if(maxAmt>0 && amt>maxAmt){
+    return { result:"AmountExceedsMax", maxAmount:maxAmt, message:"Maximum contribution amount is ₹"+maxAmt.toLocaleString("en-IN") };
+  }
+  if(amt<minAmt){
+    return { result:"AmountBelowMin", minAmount:minAmt, message:"Minimum contribution amount is ₹"+minAmt.toLocaleString("en-IN") };
+  }
 
   // Duplicate phone check
   for(let i=1;i<data.length;i++){
@@ -341,8 +351,10 @@ function insertPayment(params) {
     "", "", ""            // N:VerifiedBy O:VerifiedAt P:Notes
   ]);
 
+  // Add/update village
+  addVillageInternal(params.village);
+
   try {
-    const s=getSettings();
     if(s.OrganizerEmail){
       MailApp.sendEmail({
         to:String(s.OrganizerEmail),
@@ -355,6 +367,25 @@ function insertPayment(params) {
     }
   } catch(e){}
   return { result:"Inserted", riskLevel:utrCheck.risk };
+}
+
+function addVillageInternal(villageName) {
+  if (!villageName) return;
+  try {
+    const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet=ss.getSheetByName("Villages");
+    if(!sheet) return;
+    const data=sheet.getDataRange().getValues();
+    const normalizedNew=villageName.trim().toLowerCase();
+    for(let i=1;i<data.length;i++){
+      if(String(data[i][0]).trim().toLowerCase()===normalizedNew){
+        const count=parseInt(data[i][2]||0)+1;
+        sheet.getRange(i+1,3).setValue(count);
+        return;
+      }
+    }
+    sheet.appendRow([villageName.trim(), normalizedNew, 1, "Active"]);
+  } catch(e){}
 }
 
 function getPublicStats() {
@@ -374,13 +405,39 @@ function getPublicStats() {
   return {total,count,pending};
 }
 
+function getRecentTransactions() {
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet=ss.getSheetByName("Payments");
+  const data=sheet.getDataRange().getValues();
+  if(data.length<2) return {transactions:[]};
+  const col=getColMap(data[0]);
+  const nC=col["full name"]!==undefined?col["full name"]:(col["name"]!==undefined?col["name"]:3);
+  const vC=col["village"]!==undefined?col["village"]:4;
+  const aC=col["amount"]!==undefined?col["amount"]:6;
+  const sC=col["status"]!==undefined?col["status"]:8;
+  const dC=col["date"]!==undefined?col["date"]:1;
+  const spC=col["showpublic"]!==undefined?col["showpublic"]:12;
+  const transactions=[];
+  for(let i=1;i<data.length;i++){
+    if(String(data[i][sC]).trim()==="Verified"&&String(data[i][spC]).trim()!=="No"){
+      transactions.push({
+        name:data[i][nC],
+        village:data[i][vC],
+        amount:Number(data[i][aC])||0,
+        date:serializeVal(data[i][dC],'date')
+      });
+    }
+  }
+  transactions.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  return {transactions:transactions.slice(0,10)};
+}
+
 function checkStatus(params) {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet=ss.getSheetByName("Payments");
   const data=sheet.getDataRange().getValues();
   if(data.length<2) return {found:false};
   const col=getColMap(data[0]);
-  // Map to your actual column names
   const C={
     refid:   col["refid"]!==undefined?col["refid"]:0,
     date:    col["date"]!==undefined?col["date"]:1,
@@ -391,6 +448,7 @@ function checkStatus(params) {
     amount:  col["amount"]!==undefined?col["amount"]:6,
     utr:     col["utr"]!==undefined?col["utr"]:7,
     status:  col["status"]!==undefined?col["status"]:8,
+    fscore:  col["fraudscore"]!==undefined?col["fraudscore"]:9,
     risk:    col["risklevel"]!==undefined?col["risklevel"]:10
   };
   const type=params.searchType||'refid', val=String(params.searchVal||params.refid||'').trim();
@@ -410,7 +468,8 @@ function checkStatus(params) {
       amount:data[i][C.amount],
       utr:data[i][C.utr],
       status:data[i][C.status],
-      riskLevel:data[i][C.risk]||""
+      fraudScore:data[i][C.fscore]||0,
+      riskLevel:data[i][C.risk]||"LOW"
     };
   }
   return {found:false};
@@ -425,10 +484,11 @@ function getPayments(params) {
   for(let i=1;i<data.length;i++){
     const row={_row:i+1};
     headers.forEach((h,j)=>{ if(h) row[String(h).trim()]=serializeVal(data[i][j],h); });
-    // Normalize for frontend
     row.Name     = row["Full Name"]    || row["Name"]    || "";
     row.Phone    = row["Phone number"] || row["Phone"]   || "";
     row.RefID    = row["RefID"]        || "";
+    row.RiskLevel= row["RiskLevel"]    || row["RiskLevel"] || "LOW";
+    row.FraudScore=row["FraudScore"]   || 0;
     row.VerifiedBy = row["Verified By"]|| row["VerifiedBy"] || "";
     rows.push(row);
   }
@@ -442,20 +502,24 @@ function updatePayments(params) {
   const data=sheet.getDataRange().getValues();
   const col=getColMap(data[0]);
   const n=nowFormatted();
-  // Column indices (1-based for setRange)
   const stC  =(col["status"]!==undefined?col["status"]:8)+1;
   const vbC  =(col["verified by"]!==undefined?col["verified by"]:(col["verifiedby"]!==undefined?col["verifiedby"]:13))+1;
   const vaC  =(col["verifiedat"]!==undefined?col["verifiedat"]:14)+1;
+  const refC =(col["refid"]!==undefined?col["refid"]:0);
   const updates=JSON.parse(params.updates);
   updates.forEach(u=>{
     const oldSt=sheet.getRange(u.row,stC).getValue();
+    const refId=data[u.row-1]?data[u.row-1][refC]:"";
     sheet.getRange(u.row,stC).setValue(u.status);
     sheet.getRange(u.row,vbC).setValue(params.adminUser||"admin");
     sheet.getRange(u.row,vaC).setValue(n.full);
     logAudit({adminUser:params.adminUser, module:"Payments", action:"StatusChange",
-      field:"Status", oldValue:oldSt, newValue:u.status, reason:params.reason||""});
+      field:"Status", oldValue:String(oldSt), newValue:u.status, reason:params.reason||"",
+      row:u.row, column:stC, recordId:String(refId)});
   });
-  logActivity({adminUser:params.adminUser, action:"VerifyPayments", detail:updates.length+" records updated"});
+  logActivity({adminUser:params.adminUser, module:"Payments", action:"VerifyPayments",
+    detail:updates.length+" records updated",
+    oldValue:"", newValue:updates.map(u=>u.status).join(",")});
   return {result:"Saved"};
 }
 
@@ -492,10 +556,6 @@ function getPublicPayments() {
 
 // ============================================================
 // COMPLAINTS
-// Complaints sheet: ComplaintID(A) | Date(B) | Time(C) | Name(D) |
-//   Village(E) | Phone(F) | Email(G) | Complaint(H) |
-//   Attachment(I) | AttachmentURL(J) | AttachmentName(K) |
-//   Status(L) | ReplyBy(M) | AdminReply(N) | RepliedAt(O) | Priority(P)
 // ============================================================
 function insertComplaint(params) {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -507,7 +567,6 @@ function insertComplaint(params) {
     try {
       const s=getSettings();
       const folderID=extractFolderID(s.COMPLAINT_UPLOAD_FOLDER_ID)||"1nMx6KmUbp0CZCmK5FDrXzvyiuqiOhdKH";
-      // DriveApp requires drive scope — ensure script has 'https://www.googleapis.com/auth/drive' in appsscript.json
       const folder=DriveApp.getFolderById(folderID);
       const decoded=Utilities.base64Decode(params.filedata);
       const blob=Utilities.newBlob(decoded, params.filetype||"application/octet-stream", params.filename);
@@ -518,11 +577,9 @@ function insertComplaint(params) {
     } catch(e){
       fileUrl="Error: "+e.message;
       fileStatus="Error";
-      // Don't block complaint submission on file error
     }
   }
 
-  // Generate ComplaintID
   const cID="CP"+Date.now().toString().slice(-8);
 
   sheet.appendRow([
@@ -575,12 +632,13 @@ function updateComplaint(params) {
   const data=sheet.getDataRange().getValues();
   const col=getColMap(data[0]);
   const n=nowFormatted();
-  // Complaint columns (1-based)
   const stC  =(col["status"]!==undefined?col["status"]:11)+1;
   const rbC  =(col["replyby"]!==undefined?col["replyby"]:12)+1;
   const arC  =(col["adminreply"]!==undefined?col["adminreply"]:13)+1;
   const raC  =(col["repliedat"]!==undefined?col["repliedat"]:14)+1;
+  const idC  =(col["complaintid"]!==undefined?col["complaintid"]:0);
   const oldSt=sheet.getRange(parseInt(params.row),stC).getValue();
+  const cID=data[parseInt(params.row)-1]?data[parseInt(params.row)-1][idC]:"";
   sheet.getRange(parseInt(params.row),stC).setValue(params.status);
   sheet.getRange(parseInt(params.row),rbC).setValue(params.adminUser||"admin");
   sheet.getRange(parseInt(params.row),arC).setValue(params.reply);
@@ -594,14 +652,16 @@ function updateComplaint(params) {
     }
   } catch(e){}
   logAudit({adminUser:params.adminUser, module:"Complaints", action:"Reply",
-    field:"Status", oldValue:oldSt, newValue:params.status, reason:"Complaint reply"});
-  logActivity({adminUser:params.adminUser, action:"ReplyComplaint", detail:"Replied to "+params.name});
+    field:"Status", oldValue:String(oldSt), newValue:params.status, reason:"Complaint reply",
+    row:parseInt(params.row), column:stC, recordId:String(cID)});
+  logActivity({adminUser:params.adminUser, module:"Complaints", action:"ReplyComplaint",
+    detail:"Replied to "+params.name+" ("+cID+")",
+    oldValue:String(oldSt), newValue:params.status});
   return {result:"Updated"};
 }
 
 // ============================================================
 // VILLAGES
-// Villages sheet: Village(A) | NormalizedName(B) | Count(C) | Status(D)
 // ============================================================
 function getVillageSuggestions() {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -623,69 +683,80 @@ function addVillageSuggestion(params) {
   const sheet=ss.getSheetByName("Villages");
   if(!sheet) throw new Error("Villages sheet not found");
   const data=sheet.getDataRange().getValues();
-  const n=nowFormatted();
-  // Check if already exists, update Count
+  const normalized=params.village.trim().toLowerCase();
   for(let i=1;i<data.length;i++){
-    if(String(data[i][0]).trim().toLowerCase()===params.village.toLowerCase()){
+    if(String(data[i][0]).trim().toLowerCase()===normalized){
       const count=parseInt(data[i][2]||0)+1;
       sheet.getRange(i+1,3).setValue(count);
       return {result:"Updated"};
     }
   }
-  sheet.appendRow([params.village, params.village.toLowerCase(), 1, "Active"]);
+  sheet.appendRow([params.village.trim(), normalized, 1, "Active"]);
   return {result:"Added"};
 }
 
 // ============================================================
-// GALLERY — from Drive folder (EVENT_GALLERY_FOLDER_ID setting)
+// GALLERY — Multi-folder support
 // ============================================================
 function getGalleryImages() {
   try {
     const s=getSettings();
-    const folderURL=s.EVENT_GALLERY_FOLDER_ID||"";
-    const folderID=extractFolderID(folderURL);
-    if(!folderID) return {images:[], error:"Gallery folder not configured"};
-    const folder=DriveApp.getFolderById(folderID);
-    const files=folder.getFiles();
-    const images=[];
-    while(files.hasNext()){
-      const f=files.next();
-      if(f.getMimeType().startsWith("image/")){
-        try{ f.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW); }catch(e){}
-images.push({
- id:f.getId(),
- name:f.getName(),
- url:"https://drive.google.com/uc?id="+f.getId(),
- thumb:"https://drive.google.com/thumbnail?id="+f.getId()+"&sz=w400",
- download:"https://drive.google.com/uc?export=download&id="+f.getId()
-});
-      }
+    // Check for multi-folder config
+    const engFolderID=extractFolderID(s.ENGAGEMENT_GALLERY_FOLDER_ID||"1-cBfezT2-QDNOpqe7_7jUbAvWIghs5mN");
+    const haldiFolderID=extractFolderID(s.HALDI_GALLERY_FOLDER_ID||"1Fi4mwTWTsejRIf9i_zBOWqPoVmKKH2ya");
+    const marFolderID=extractFolderID(s.MARRIAGE_GALLERY_FOLDER_ID||"1uYmlzQrTijwMDFriG8wcrVHqRGgQSyUz");
+
+    function getFolderImages(folderID, section) {
+      if (!folderID) return [];
+      try {
+        const folder=DriveApp.getFolderById(folderID);
+        const files=folder.getFiles();
+        const imgs=[];
+        while(files.hasNext()){
+          const f=files.next();
+          if(f.getMimeType().startsWith("image/")){
+            try{ f.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW); }catch(e){}
+            imgs.push({
+              id:f.getId(), name:f.getName(), section:section,
+              url:"https://drive.google.com/uc?id="+f.getId(),
+              thumb:"https://drive.google.com/thumbnail?id="+f.getId()+"&sz=w400"
+            });
+          }
+        }
+        return imgs;
+      } catch(e){ return []; }
     }
-    return {images};
-  } catch(e){ return {images:[],error:e.message}; }
+
+    const sections={
+      engagement: getFolderImages(engFolderID, "Engagement"),
+      haldi: getFolderImages(haldiFolderID, "Haldi"),
+      marriage: getFolderImages(marFolderID, "Marriage")
+    };
+
+    const allImages=[...sections.engagement,...sections.haldi,...sections.marriage];
+    return {images:allImages, sections};
+  } catch(e){ return {images:[],sections:{},error:e.message}; }
 }
 
 // ============================================================
 // ACTIVITY LOG
-// ActivityLog sheet: RecordID(A) | Date(B) | Time(C) | AdminUser(D) |
-//   Action(E) | Detail(F) | OldValue(G) | NewValue(H) |
-//   Details(I) | Duration(J) | Browser(K) | Device(L) | LogoutType(M)
+// Format: Admin X did Y on Module Z
 // ============================================================
 function logActivity(params) {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet=ss.getSheetByName("ActivityLog");
   if(!sheet){
     sheet=ss.insertSheet("ActivityLog");
-    sheet.appendRow(["RecordID","Date","Time","AdminUser","Action","Detail",
-      "OldValue","NewValue","Details","Duration","Browser","Device","LogoutType"]);
+    sheet.appendRow(["RecordID","Date","Time","AdminUser","Module","Action","Detail",
+      "OldValue","NewValue","RecordID_Ref","Browser","Device","LogoutType"]);
   }
   const n=nowFormatted();
   const recID="AL"+Date.now().toString().slice(-8);
   sheet.appendRow([
     recID, n.date, n.time,
-    params.adminUser||"", params.action||"", params.detail||"",
+    params.adminUser||"", params.module||"", params.action||"", params.detail||"",
     params.oldValue||"", params.newValue||"",
-    params.details||"", "", "", "", ""
+    params.recordId||"", "", "", ""
   ]);
   return {result:"Logged"};
 }
@@ -697,19 +768,26 @@ function getActivity(params) {
   if(!sheet) return {activities:[]};
   const data=sheet.getDataRange().getValues();
   const rows=[];
-  for(let i=Math.max(1,data.length-50);i<data.length;i++){
+  const headers=data[0];
+  const col=getColMap(headers);
+  for(let i=Math.max(1,data.length-100);i<data.length;i++){
     rows.push({
-      date:serializeVal(data[i][1],'date'), time:serializeVal(data[i][2],'time'),
-      user:data[i][3], action:data[i][4], detail:data[i][5]
+      date:    serializeVal(data[i][col["date"]!==undefined?col["date"]:1],'date'),
+      time:    serializeVal(data[i][col["time"]!==undefined?col["time"]:2],'time'),
+      user:    data[i][col["adminuser"]!==undefined?col["adminuser"]:3],
+      module:  data[i][col["module"]!==undefined?col["module"]:4],
+      action:  data[i][col["action"]!==undefined?col["action"]:5],
+      detail:  data[i][col["detail"]!==undefined?col["detail"]:6],
+      oldValue:data[i][col["oldvalue"]!==undefined?col["oldvalue"]:7],
+      newValue:data[i][col["newvalue"]!==undefined?col["newvalue"]:8],
+      recordId:data[i][col["recordid_ref"]!==undefined?col["recordid_ref"]:9]||""
     });
   }
   return {activities:rows.reverse()};
 }
 
 // ============================================================
-// AUDIT LOG
-// AuditLog sheet: Timestamp(A) | AdminUser(B) | Module(C) |
-//   Action(D) | Field(E) | OldValue(F) | NewValue(G) | Reason(H)
+// AUDIT LOG — Extended with Row/Column tracking
 // ============================================================
 function logAudit(params) {
   try {
@@ -717,11 +795,14 @@ function logAudit(params) {
     let sheet=ss.getSheetByName("AuditLog");
     if(!sheet){
       sheet=ss.insertSheet("AuditLog");
-      sheet.appendRow(["Timestamp","AdminUser","Module","Action","Field","OldValue","NewValue","Reason"]);
+      sheet.appendRow(["Timestamp","AdminUser","Module","Action","Field","OldValue","NewValue","Reason","Row","Column","RecordID"]);
     }
     const n=nowFormatted();
-    sheet.appendRow([n.full, params.adminUser||"", params.module||"", params.action||"",
-      params.field||"", params.oldValue||"", params.newValue||"", params.reason||""]);
+    sheet.appendRow([
+      n.full, params.adminUser||"", params.module||"", params.action||"",
+      params.field||"", params.oldValue||"", params.newValue||"", params.reason||"",
+      params.row||"", params.column||"", params.recordId||""
+    ]);
   } catch(e){}
 }
 
@@ -734,10 +815,85 @@ function getAuditLog(params) {
   const logs=[];
   const limit=parseInt(params.limit)||100;
   for(let i=Math.max(1,data.length-limit);i<data.length;i++){
-    logs.push({timestamp:String(data[i][0]),user:data[i][1],module:data[i][2],
-      action:data[i][3],field:data[i][4],oldValue:data[i][5],newValue:data[i][6],reason:data[i][7]});
+    logs.push({
+      timestamp:String(data[i][0]),user:data[i][1],module:data[i][2],
+      action:data[i][3],field:data[i][4],oldValue:data[i][5],newValue:data[i][6],
+      reason:data[i][7],row:data[i][8],column:data[i][9],recordId:data[i][10]||""
+    });
   }
   return {logs:logs.reverse()};
+}
+
+// ============================================================
+// UNDO SYSTEM
+// ============================================================
+function undoActions(params) {
+  verifySuperAdmin(params);
+  const scope = params.scope || "last"; // last, 1hour, 24hour, 7days, all
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+  const auditSheet=ss.getSheetByName("AuditLog");
+  if(!auditSheet) return {result:"NoAuditLog", undone:0};
+
+  const data=auditSheet.getDataRange().getValues();
+  const now=new Date();
+  let cutoff=null;
+  if(scope==="1hour")  cutoff=new Date(now.getTime()-3600*1000);
+  if(scope==="24hour") cutoff=new Date(now.getTime()-86400*1000);
+  if(scope==="7days")  cutoff=new Date(now.getTime()-7*86400*1000);
+
+  let undone=0;
+  // Collect entries that qualify (in reverse order for undoing)
+  const toUndo=[];
+  for(let i=data.length-1;i>=1;i--){
+    const ts=new Date(String(data[i][0]));
+    if(scope==="last"&&toUndo.length>=1) break;
+    if(cutoff&&ts<cutoff) break;
+    if(scope==="all"||scope==="last"||(cutoff&&ts>=cutoff)){
+      toUndo.push({
+        idx:i, timestamp:data[i][0], user:data[i][1], module:data[i][2],
+        action:data[i][3], field:data[i][4], oldValue:data[i][5], newValue:data[i][6],
+        reason:data[i][7], row:data[i][8], column:data[i][9]
+      });
+    }
+  }
+
+  const errors=[];
+  toUndo.forEach(entry=>{
+    try {
+      if(entry.module.startsWith("Sheet:")){
+        const sheetName=entry.module.replace("Sheet:","");
+        const targetSheet=ss.getSheetByName(sheetName);
+        if(targetSheet&&entry.row&&entry.column&&entry.oldValue!==undefined){
+          targetSheet.getRange(parseInt(entry.row),parseInt(entry.column)).setValue(entry.oldValue);
+          undone++;
+        }
+      } else if(entry.module==="Payments"&&entry.action==="StatusChange"){
+        const pSheet=ss.getSheetByName("Payments");
+        if(pSheet&&entry.row&&entry.column&&entry.oldValue){
+          pSheet.getRange(parseInt(entry.row),parseInt(entry.column)).setValue(entry.oldValue);
+          undone++;
+        }
+      } else if(entry.module==="Settings"&&entry.action==="Update"){
+        const sSheet=ss.getSheetByName("Settings");
+        const sData=sSheet.getDataRange().getValues();
+        for(let j=0;j<sData.length;j++){
+          if(String(sData[j][0]).trim()===entry.field){
+            sSheet.getRange(j+1,2).setValue(entry.oldValue);
+            undone++; break;
+          }
+        }
+      }
+      // Log the undo operation
+      logAudit({adminUser:params.adminUser, module:entry.module, action:"UNDO_"+entry.action,
+        field:entry.field, oldValue:entry.newValue, newValue:entry.oldValue,
+        reason:"Undo by "+params.adminUser+" (scope: "+scope+")",
+        row:entry.row, column:entry.column});
+    } catch(e){ errors.push(e.message); }
+  });
+
+  logActivity({adminUser:params.adminUser, module:"System", action:"UndoActions",
+    detail:"Undone "+undone+" action(s) [scope: "+scope+"]"});
+  return {result:"Done", undone, errors};
 }
 
 // ============================================================
@@ -764,8 +920,14 @@ function updateSheetCell(params) {
   if(row<2) throw new Error("Cannot edit header row");
   const oldVal=sheet.getRange(row,col).getValue();
   sheet.getRange(row,col).setValue(params.value);
+  const headers=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const fieldName=headers[col-1]||("Col "+col);
   logAudit({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"CellEdit",
-    field:"R"+row+"C"+col, oldValue:oldVal, newValue:params.value, reason:params.reason||"Direct edit"});
+    field:fieldName, oldValue:String(oldVal), newValue:String(params.value),
+    reason:params.reason||"Direct edit", row:row, column:col});
+  logActivity({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"CellEdit",
+    detail:"Edited "+fieldName+" in row "+row,
+    oldValue:String(oldVal), newValue:String(params.value)});
   return {result:"Updated"};
 }
 function addSheetRow(params) {
@@ -773,11 +935,20 @@ function addSheetRow(params) {
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet=ss.getSheetByName(params.sheetName);
   if(!sheet) throw new Error("Sheet not found");
+  // Get headers to fill with placeholders
+  const headers=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const cols=headers.length||3;
   const rowData=JSON.parse(params.rowData||"[]");
-  sheet.appendRow(rowData);
+  // Ensure rowData has correct column count, fill with empty string if short
+  const finalRow=Array(cols).fill("").map((v,i)=>rowData[i]!==undefined?rowData[i]:"");
+  sheet.appendRow(finalRow);
+  const newRowNum=sheet.getLastRow();
   logAudit({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"AddRow",
-    field:"row", oldValue:"", newValue:JSON.stringify(rowData), reason:params.reason||"New row"});
-  return {result:"Added", row:sheet.getLastRow()};
+    field:"row", oldValue:"", newValue:JSON.stringify(finalRow), reason:params.reason||"New row",
+    row:newRowNum, column:1});
+  logActivity({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"AddRow",
+    detail:"Added new row "+newRowNum+" to "+params.sheetName});
+  return {result:"Added", row:newRowNum};
 }
 function deleteSheetRow(params) {
   verifySuperAdmin(params);
@@ -789,6 +960,9 @@ function deleteSheetRow(params) {
   const oldData=sheet.getRange(row,1,1,sheet.getLastColumn()).getValues()[0];
   sheet.deleteRow(row);
   logAudit({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"DeleteRow",
-    field:"row "+row, oldValue:JSON.stringify(oldData), newValue:"", reason:params.reason||"Deleted"});
+    field:"row "+row, oldValue:JSON.stringify(oldData), newValue:"", reason:params.reason||"Deleted",
+    row:row, column:1});
+  logActivity({adminUser:params.adminUser, module:"Sheet:"+params.sheetName, action:"DeleteRow",
+    detail:"Deleted row "+row+" from "+params.sheetName});
   return {result:"Deleted"};
 }
