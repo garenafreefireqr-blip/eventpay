@@ -268,11 +268,34 @@ Promise.all([
   if(orgName) document.getElementById("inviteSubtitle").textContent="Hosted by "+orgName;
 
   // Date + time
-  if(eventDate||eventTime){
-    document.getElementById("inviteDateRow").style.display="flex";
-    document.getElementById("inviteDateTime").textContent=[eventDate,eventTime].filter(Boolean).join(" at ");
+  // Date + Time Formatting
+if (eventDate || eventTime) {
+  document.getElementById("inviteDateRow").style.display = "flex";
+
+  let formattedDate = "";
+  let formattedTime = "";
+
+  if (eventDate) {
+    const d = new Date(eventDate);
+    formattedDate = d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
   }
 
+  if (eventTime) {
+    const t = new Date(eventTime);
+    formattedTime = t.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+  }
+
+  document.getElementById("inviteDateTime").textContent =
+    `${formattedDate}${formattedTime ? " at " + formattedTime : ""}`;
+}
   // Venue
   if(venueAddr){
     document.getElementById("inviteVenueRow").style.display="flex";
